@@ -1,0 +1,2 @@
+CompileFlags:
+  Remove: [-mcpu=*, -mfpu=*, -mfloat-abi=*, -mthumb, -target]
