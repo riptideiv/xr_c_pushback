@@ -3,10 +3,10 @@
 #include "utils.hpp"
 
 namespace intk {
-    pros::Motor *mwide = new pros::Motor(7),
-                *mtunnel = new pros::Motor(8),
-                *mthin = new pros::Motor(9),
-                *mtop = new pros::Motor(10);
+    pros::Motor *mwide = new pros::Motor(-9),
+                *mtunnel = new pros::Motor(6),
+                *mthin = new pros::Motor(8),
+                *mtop = new pros::Motor(-10);
     pros::Task *tloop = nullptr;
 
     bool doColorSort;
@@ -41,9 +41,10 @@ namespace intk {
     const int loopDelay = 3;
 
     void initialize() {
-        mwide->set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-        mtunnel->set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-        mthin->set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+        mwide->set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+        mtunnel->set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+        mthin->set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+        mtop->set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
 
         doColorSort = false;
         colorSortRed = true;
@@ -59,7 +60,7 @@ namespace intk {
         prevPwr = 0;
         startUpTime = 0;
 
-        tloop = new pros::Task(loop);
+        tloop = new pros::Task([]() {while(1) loop(); });
     }
 
     void intake(int pwr) {
@@ -90,6 +91,10 @@ namespace intk {
         wide.speed = pwr;
         top.speed = pwr;
         power = pwr;
+    }
+
+    void stop() {
+        thin.speed = tunnel.speed = wide.speed = top.speed = power = 0;
     }
 
     void colorSort() {
