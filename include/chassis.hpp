@@ -6,4 +6,5 @@ namespace chass {
     void initialize();
     void drive(int l, int r);
     void arcade(double y, double x);
+    void moveChass(int l, int r);
 } // namespace chass
