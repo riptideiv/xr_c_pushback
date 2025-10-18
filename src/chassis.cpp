@@ -31,7 +31,7 @@ namespace chass {
     void arcade(double y, double x) {
         int X = applyCurve(x, steeringCurve);
         int Y = applyCurve(y, throttleCurve);
-        std::cout << x << "->" << X << ' ' << y << "->" << Y << std::endl;
+        // std::cout << x << "->" << X << ' ' << y << "->" << Y << std::endl;
         drive127(Y + X, Y - X);
     }
 } // namespace chass
