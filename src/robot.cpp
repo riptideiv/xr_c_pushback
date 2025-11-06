@@ -5,6 +5,7 @@ namespace bot {
 
     void initialize() {
         chass::initialize();
+        initialize_sensors();
         intk::initialize();
     }
 } // namespace bot

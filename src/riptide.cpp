@@ -1,13 +1,16 @@
 #include "riptide.hpp"
 #include "main.h"
+#include "odom.hpp"
 #include "robot.hpp"
 
 namespace riptide {
     using bot::master;
     void initialize() {
         bot::initialize();
+        odom::initialize();
     }
     void autonomous() {
+        odom::pdrive(12, 1000);
     }
     void disabled() {
     }

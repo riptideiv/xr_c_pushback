@@ -1,9 +1,28 @@
 #include "chassis.hpp"
 #include "main.h"
+#include "pros/motors.h"
 
 namespace chass {
     pros::MotorGroup mleft({-7, -13, -21}), mright({20, 19, 17});
+    double getLeftPos() { // left motors velo in rpm
+        double ans = 0;
+        for (double i : mleft.get_position_all()) {
+            ans += i;
+        }
+        return ans / 3.0;
+    }
+    double getRightPos() { // right motors velo in rpm
+        double ans = 0;
+        for (double i : mright.get_position_all()) {
+            ans += i;
+        }
+        return ans / 3.0;
+    }
     void initialize() {
+        mleft.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
+        mright.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
+        mleft.set_encoder_units_all(pros::E_MOTOR_ENCODER_DEGREES);
+        mright.set_encoder_units_all(pros::E_MOTOR_ENCODER_DEGREES);
     }
     void drive127(double l, double r) {
         mleft.move(l);
@@ -25,13 +44,13 @@ namespace chass {
             return 0;
         if (x > 0)
             return curve.k * pow(curve.base, x) + curve.c;
-        else
+        else // mirror curve over y axis
             return -(curve.k * pow(curve.base, -x) + curve.c);
     }
     void arcade(double y, double x) {
         int X = applyCurve(x, steeringCurve);
         int Y = applyCurve(y, throttleCurve);
-        std::cout << x << "->" << X << ' ' << y << "->" << Y << std::endl;
+        // std::cout << x << "->" << X << ' ' << y << "->" << Y << std::endl;
         drive127(Y + X, Y - X);
     }
 } // namespace chass

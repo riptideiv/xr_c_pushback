@@ -4,7 +4,9 @@
 namespace chass {
     extern pros::MotorGroup mleft, mright;
     void initialize();
-    void drive(int l, int r);
+    void drive(double l, double r);
+    void drive127(double l, double r);
     void arcade(double y, double x);
-    void moveChass(int l, int r);
+    double getLeftPos();
+    double getRightPos();
 } // namespace chass
