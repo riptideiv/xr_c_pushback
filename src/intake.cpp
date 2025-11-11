@@ -4,7 +4,7 @@
 
 namespace intk {
     pros::Motor *mwide = new pros::Motor(-9),
-                *mtunnel = new pros::Motor(6),
+                *mtunnel = new pros::Motor(5),
                 *mthin = new pros::Motor(8),
                 *mtop = new pros::Motor(-10);
     pros::Task *tloop = nullptr;
