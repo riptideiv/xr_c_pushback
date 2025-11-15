@@ -2,6 +2,7 @@
 
 #include "chassis.hpp"
 #include "intake.hpp"
+#include "pneumatics.hpp"
 #include "sensors.hpp"
 
 namespace bot {

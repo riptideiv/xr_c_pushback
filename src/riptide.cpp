@@ -1,6 +1,7 @@
 #include "riptide.hpp"
 #include "main.h"
 #include "odom.hpp"
+#include "pros/misc.h"
 #include "robot.hpp"
 
 namespace riptide {
@@ -27,6 +28,12 @@ namespace riptide {
                 intk::scoreMid(100);
             } else {
                 intk::stop();
+            }
+            if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)) {
+                bot::toggleDescoreArm();
+            }
+            if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN)) {
+                bot::toggleMatchLoader();
             }
             chass::arcade(master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y), master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X));
         }

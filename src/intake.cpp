@@ -4,7 +4,7 @@
 
 namespace intk {
     pros::Motor *mwide = new pros::Motor(-9),
-                *mtunnel = new pros::Motor(6),
+                *mtunnel = new pros::Motor(5),
                 *mthin = new pros::Motor(8),
                 *mtop = new pros::Motor(-10);
     pros::Task *tloop = nullptr;
@@ -13,17 +13,28 @@ namespace intk {
     bool colorSortRed;
     bool doAntiStuck;
 
+    bool unloading;
+
     struct intakeRoller {
         pros::Motor *motor;
-        int speed;
+        int speed, speedLimit = 1000;
         bool stuck() {
-            return speed > 0 && motor->get_actual_velocity() / speed < 0.1;
+            return abs(speed) > 0 && motor->get_actual_velocity() / speed < 0.1;
         }
         void spin(int speedPct) {
-            motor->move_voltage(120 * speedPct);
+            int spd = speedPct;
+            if (abs(spd) > speedLimit)
+                spd = sign(spd) * speedLimit;
+            motor->move_voltage(120 * spd);
         }
         void spin() {
-            motor->move_voltage(120 * speed);
+            int spd = speed;
+            if (abs(spd) > speedLimit)
+                spd = sign(spd) * speedLimit;
+            motor->move_voltage(120 * spd);
+        }
+        void limSpeed(int spdLimit) {
+            speedLimit = spdLimit;
         }
     } thin = {mthin, 0}, tunnel = {mtunnel, 0}, wide = {mwide, 0}, top = {mtop, 0};
     int power = 0;
@@ -50,6 +61,8 @@ namespace intk {
         colorSortRed = true;
         doAntiStuck = true;
 
+        unloading = false;
+
         throwAway = false;
 
         stuckFor = 0;
@@ -68,6 +81,7 @@ namespace intk {
         tunnel.speed = pwr;
         wide.speed = pwr;
         power = pwr;
+        unloading = false;
     }
 
     void outtake(int pwr) {
@@ -75,6 +89,7 @@ namespace intk {
         tunnel.speed = -pwr;
         wide.speed = -pwr;
         power = pwr;
+        unloading = true;
     }
 
     void scoreMid(int pwr) {
@@ -83,6 +98,7 @@ namespace intk {
         wide.speed = pwr;
         top.speed = -pwr;
         power = pwr;
+        unloading = true;
     }
 
     void scoreHigh(int pwr) {
@@ -91,6 +107,7 @@ namespace intk {
         wide.speed = pwr;
         top.speed = pwr;
         power = pwr;
+        unloading = true;
     }
 
     void stop() {
@@ -120,7 +137,7 @@ namespace intk {
                 colorSort();
             }
             if (doAntiStuck) {
-                antiStuck();
+                // antiStuck();
             }
         } else {
             startUpTime -= loopDelay;
@@ -128,7 +145,7 @@ namespace intk {
 
         // give startup time when intake starts
         if (prevPwr == 0 && power > 0) {
-            startUpTime = 200;
+            startUpTime = 500;
         }
 
         // record previous power to check for changes
@@ -147,6 +164,16 @@ namespace intk {
             tunnel.spin();
             wide.spin();
             top.spin();
+            if (unloading) {
+                double tunnelVelo = tunnel.motor->get_actual_velocity();
+                // std::cout << tunnelVelo << std::endl;
+                if (fabs(tunnelVelo) < 100)
+                    thin.limSpeed(10);
+                else
+                    thin.limSpeed(1000);
+            } else {
+                thin.limSpeed(1000);
+            }
         }
     }
 } // namespace intk
