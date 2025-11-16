@@ -9,4 +9,5 @@ namespace chass {
     void arcade(double y, double x);
     double getLeftPos();
     double getRightPos();
+    double getAvgPos();
 } // namespace chass

@@ -3,7 +3,7 @@
 #include "robot.hpp"
 namespace odom {
     // constants
-    const double loopDelay = 100;       // loop delay in msecs
+    const double loopDelay = 10;        // loop delay in msecs
     const double trackWidth = 12.15625; // track width in inches
     const double wheelRadius = 1.625;   // 3.25 inch wheels
 
@@ -58,7 +58,7 @@ namespace odom {
         xpos += deltaX;
         ypos += deltaY;
 
-        std::cout << "deltaL: " << deltaL << ", deltaR: " << deltaR << ", deltatheta: " << deltatheta << ", deltaXlocal: " << deltaXlocal << ", deltaYlocal: " << deltaYlocal << ", deltaX: " << deltaX << ", deltaY: " << deltaY << ", xpos: " << xpos << ", ypos: " << ypos << std::endl;
+        // std::cout << "deltaL: " << deltaL << ", deltaR: " << deltaR << ", deltatheta: " << deltatheta << ", deltaXlocal: " << deltaXlocal << ", deltaYlocal: " << deltaYlocal << ", deltaX: " << deltaX << ", deltaY: " << deltaY << ", xpos: " << xpos << ", ypos: " << ypos << std::endl;
     }
     pros::Task *odomTask;
     void initialize() {
@@ -74,15 +74,5 @@ namespace odom {
         angvelo = 0;
         xpos = 0,
         ypos = 0;
-    }
-    void pdrive(int targ, int t) {
-        t += pros::millis();
-        static const double kP = 10;
-        while (pros::millis() < t) {
-            pros::delay(20);
-            double error = targ - ypos;
-            double out = kP * error;
-            chass::drive(out, out);
-        }
     }
 } // namespace odom

@@ -3,9 +3,8 @@
 #include "utils.hpp"
 
 namespace intk {
-    pros::Motor *mwide = new pros::Motor(-9),
+    pros::Motor *mwide = new pros::Motor(-4),
                 *mtunnel = new pros::Motor(5),
-                *mthin = new pros::Motor(8),
                 *mtop = new pros::Motor(-10);
     pros::Task *tloop = nullptr;
 
@@ -24,19 +23,19 @@ namespace intk {
         void spin(int speedPct) {
             int spd = speedPct;
             if (abs(spd) > speedLimit)
-                spd = sign(spd) * speedLimit;
+                spd = utils::sign(spd) * speedLimit;
             motor->move_voltage(120 * spd);
         }
         void spin() {
             int spd = speed;
             if (abs(spd) > speedLimit)
-                spd = sign(spd) * speedLimit;
+                spd = utils::sign(spd) * speedLimit;
             motor->move_voltage(120 * spd);
         }
         void limSpeed(int spdLimit) {
             speedLimit = spdLimit;
         }
-    } thin = {mthin, 0}, tunnel = {mtunnel, 0}, wide = {mwide, 0}, top = {mtop, 0};
+    } tunnel = {mtunnel, 0}, wide = {mwide, 0}, top = {mtop, 0};
     int power = 0;
 
     bool throwAway;
@@ -54,7 +53,6 @@ namespace intk {
     void initialize() {
         mwide->set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
         mtunnel->set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
-        mthin->set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
         mtop->set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
 
         doColorSort = false;
@@ -77,7 +75,6 @@ namespace intk {
     }
 
     void intake(int pwr) {
-        thin.speed = pwr;
         tunnel.speed = pwr;
         wide.speed = pwr;
         power = pwr;
@@ -85,7 +82,6 @@ namespace intk {
     }
 
     void outtake(int pwr) {
-        thin.speed = -pwr;
         tunnel.speed = -pwr;
         wide.speed = -pwr;
         power = pwr;
@@ -93,7 +89,6 @@ namespace intk {
     }
 
     void scoreMid(int pwr) {
-        thin.speed = -pwr;
         tunnel.speed = -pwr;
         wide.speed = pwr;
         top.speed = -pwr;
@@ -102,7 +97,6 @@ namespace intk {
     }
 
     void scoreHigh(int pwr) {
-        thin.speed = -pwr;
         tunnel.speed = -pwr;
         wide.speed = pwr;
         top.speed = pwr;
@@ -111,14 +105,14 @@ namespace intk {
     }
 
     void stop() {
-        thin.speed = tunnel.speed = wide.speed = top.speed = power = 0;
+        tunnel.speed = wide.speed = top.speed = power = 0;
     }
 
     void colorSort() {
     }
 
     void antiStuck() {
-        if (revTime <= 0 && (thin.stuck() || tunnel.stuck() || wide.stuck())) {
+        if (revTime <= 0 && (top.stuck() || tunnel.stuck() || wide.stuck())) {
             stuckFor += loopDelay;
         } else {
             stuckFor = 0;
@@ -137,7 +131,7 @@ namespace intk {
                 colorSort();
             }
             if (doAntiStuck) {
-                // antiStuck();
+                antiStuck();
             }
         } else {
             startUpTime -= loopDelay;
@@ -145,34 +139,32 @@ namespace intk {
 
         // give startup time when intake starts
         if (prevPwr == 0 && power > 0) {
-            startUpTime = 500;
+            startUpTime = 150;
         }
 
         // record previous power to check for changes
         prevPwr = power;
 
-        // give startup time if the intake is auto-reversing
         if (revTime > 0) {
-            startUpTime = 300;
+            startUpTime = 100; // give startup time if the intake is auto-reversing
             revTime -= loopDelay;
-            thin.spin(sign(thin.speed) * -100);
-            tunnel.spin(sign(tunnel.speed) * -100);
-            wide.spin(sign(wide.speed) * -100);
+            top.spin(utils::sign(top.speed) * -100);
+            tunnel.spin(utils::sign(tunnel.speed) * -100);
+            wide.spin(utils::sign(wide.speed) * -100);
         } else {
             // normal operation
-            thin.spin();
             tunnel.spin();
             wide.spin();
             top.spin();
-            if (unloading) {
-                double tunnelVelo = tunnel.motor->get_actual_velocity();
+            if (unloading && top.speed != 0) {
+                double topVelo = top.motor->get_actual_velocity();
                 // std::cout << tunnelVelo << std::endl;
-                if (fabs(tunnelVelo) < 100)
-                    thin.limSpeed(10);
+                if (fabs(topVelo) < 100)
+                    tunnel.limSpeed(10);
                 else
-                    thin.limSpeed(1000);
+                    tunnel.limSpeed(1000);
             } else {
-                thin.limSpeed(1000);
+                tunnel.limSpeed(1000);
             }
         }
     }

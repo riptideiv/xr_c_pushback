@@ -5,7 +5,7 @@
 #include "pros/adi.hpp"
 
 namespace bot {
-    extern pros::adi::AnalogOut descoreArm, matchLoader;
+    extern pros::adi::DigitalOut descoreArm, matchLoader;
     void toggleDescoreArm();
     void toggleMatchLoader();
 } // namespace bot

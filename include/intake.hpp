@@ -3,7 +3,7 @@
 #include "main.h"
 
 namespace intk {
-    extern pros::Motor *mwide, *mtunnel, *mthin;
+    extern pros::Motor *mwide, *mtunnel, *mtop;
 
     void initialize();
     void set(int power);

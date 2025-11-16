@@ -2,8 +2,8 @@
 #include "pros/adi.hpp"
 
 namespace bot {
-    pros::adi::AnalogOut descoreArm('A');
-    pros::adi::AnalogOut matchLoader('B');
+    pros::adi::DigitalOut descoreArm('A');
+    pros::adi::DigitalOut matchLoader('B');
     void toggleDescoreArm() {
         static bool descoreArmState = false;
         descoreArmState = !descoreArmState;

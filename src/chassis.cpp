@@ -3,20 +3,28 @@
 #include "pros/motors.h"
 
 namespace chass {
-    pros::MotorGroup mleft({-7, -13, -21}), mright({20, 19, 17});
-    double getLeftPos() { // left motors velo in rpm
+    pros::MotorGroup mleft({-7, -13, -21}), mright({20, 16, 17});
+    const double gearRatio = 3.0 / 4.0; // output revs / motor revs
+    const double tuningK = 3;
+
+    double getLeftPos() { // left motors position in inches
         double ans = 0;
         for (double i : mleft.get_position_all()) {
             ans += i;
         }
+        ans = ans * 3.14159 * 3.25 / 360.0 * gearRatio * tuningK; // convert to inches
         return ans / 3.0;
     }
-    double getRightPos() { // right motors velo in rpm
+    double getRightPos() { // right motors position in inches
         double ans = 0;
         for (double i : mright.get_position_all()) {
             ans += i;
         }
+        ans = ans * 3.14159 * 3.25 / 360.0 * gearRatio * tuningK; // convert to inches
         return ans / 3.0;
+    }
+    double getAvgPos() {
+        return (getLeftPos() + getRightPos()) / 2.0;
     }
     void initialize() {
         mleft.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
@@ -38,7 +46,7 @@ namespace chass {
             k = (127.0 - minout) / (pow(b, 127) - pow(b, dband));
             c = 127 - k * pow(b, 127);
         }
-    } steeringCurve(10, 15, 1.01), throttleCurve(10, 15, 1.005);
+    } steeringCurve(15, 10, 1.02), throttleCurve(15, 15, 1.005);
     double applyCurve(double x, const curveConsts &curve) {
         if (fabs(x) < curve.deadband)
             return 0;
