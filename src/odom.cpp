@@ -1,6 +1,7 @@
 #include "odom.hpp"
 #include "main.h"
 #include "robot.hpp"
+#include <cmath>
 namespace odom {
     // constants
     const double loopDelay = 10;        // loop delay in msecs
@@ -74,5 +75,43 @@ namespace odom {
         angvelo = 0;
         xpos = 0,
         ypos = 0;
+    }
+
+    double getX() {
+        return xpos;
+    }
+
+    double getY() {
+        return ypos;
+    }
+
+    double getHeading() {
+        return bot::imu.get_rotation();
+    }
+
+    void setPose(double x, double y, double heading) {
+        xpos = x;
+        ypos = y;
+        bot::imu.set_heading(heading);
+        prevtheta = heading / 180.0 * std::numbers::pi;
+    }
+
+    void resetPose() {
+        setPose(0, 0, 0);
+    }
+
+    double distanceTo(double targetX, double targetY) {
+        double dx = targetX - xpos;
+        double dy = targetY - ypos;
+        return std::sqrt(dx * dx + dy * dy);
+    }
+
+    double angleTo(double targetX, double targetY) {
+        double dx = targetX - xpos;
+        double dy = targetY - ypos;
+        // atan2 gives angle in radians, convert to degrees
+        // Adjust so 0 degrees is forward (positive Y direction)
+        double angleRad = std::atan2(dx, dy);
+        return angleRad * 180.0 / std::numbers::pi;
     }
 } // namespace odom
