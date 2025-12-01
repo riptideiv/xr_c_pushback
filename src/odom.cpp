@@ -34,7 +34,7 @@ namespace odom {
         angvelo = deltatheta * 1000.0 / loopDelay;
 
         double deltaXlocal, deltaYlocal;
-        if (fabs(deltatheta) < 0.0005) { // didn't turn
+        if (fabs(deltatheta) < 0.001) { // didn't turn
             deltaXlocal = 0;
             deltaYlocal = (deltaL + deltaR) / 2.0;
         } else {

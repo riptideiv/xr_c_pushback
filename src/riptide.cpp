@@ -27,20 +27,20 @@ namespace riptide {
         // pid::driveTo(20, 1000);
         // intk::scoreHigh(100);
 
-        // rightside preload + match load
-        intk::scoreHigh(100);
-        pros::delay(300);
-        intk::stop();
-        pid::driveTo(32.5, 1500);
-        bot::toggleMatchLoader();
-        pid::turnTo(-90, 1000);
-        intk::intake(100);
-        pid::driveTo(-12, 1000);
-        pros::delay(500);
-        pid::driveTo(-13, 300, false);
-        bot::toggleMatchLoader();
-        pid::driveTo(20, 1000, false);
-        intk::scoreHigh(100);
+        // // rightside preload + match load
+        // intk::scoreHigh(100);
+        // pros::delay(300);
+        // intk::stop();
+        // pid::driveTo(32.5, 1500);
+        // bot::toggleMatchLoader();
+        // pid::turnTo(-90, 1000);
+        // intk::intake(100);
+        // pid::driveTo(-12, 1000);
+        // pros::delay(500);
+        // pid::driveTo(-13, 300, false);
+        // bot::toggleMatchLoader();
+        // pid::driveTo(20, 1000, false);
+        // intk::scoreHigh(100);
 
         // // leftside preload + match load
         // intk::scoreHigh(100);
