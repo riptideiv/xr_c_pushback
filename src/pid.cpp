@@ -4,6 +4,7 @@
 #include "sensors.hpp"
 #include <atomic>
 #include <cmath>
+#include <numbers>
 
 namespace pid {
     PIDConsts linearConsts(6.25, 0.0, 75, 1500);
