@@ -1,4 +1,5 @@
 #include "riptide.hpp"
+#include "auton.hpp"
 #include "intake.hpp"
 #include "main.h"
 #include "odom.hpp"
@@ -13,48 +14,10 @@ namespace riptide {
     void initialize() {
         bot::initialize();
         odom::initialize();
+        auton::initialize();
     }
     void autonomous() {
-        // pid::driveTo(12, 2000);
-
-        // // rightside preload only
-        // pid::driveTo(33, 1500);
-        // intk::scoreHigh(100);
-        // pros::delay(300);
-        // intk::stop();
-        // pid::turnTo(-90, 1000);
-        // pid::driveTo(20, 1000);
-        // intk::scoreHigh(100);
-
-        // // rightside preload + match load
-        // intk::scoreHigh(100);
-        // pros::delay(300);
-        // intk::stop();
-        // pid::driveTo(32.5, 1500);
-        // bot::toggleMatchLoader();
-        // pid::turnTo(-90, 1000);
-        // intk::intake(100);
-        // pid::driveTo(-12, 1000);
-        // pros::delay(500);
-        // pid::driveTo(-13, 300, false);
-        // bot::toggleMatchLoader();
-        // pid::driveTo(20, 1000, false);
-        // intk::scoreHigh(100);
-
-        // // leftside preload + match load
-        // intk::scoreHigh(100);
-        // pros::delay(300);
-        // intk::stop();
-        // pid::driveTo(34, 1500);
-        // bot::toggleMatchLoader();
-        // pid::turnTo(90, 1000);
-        // intk::intake(100);
-        // pid::driveTo(-15, 1000);
-        // pros::delay(500);
-        // pid::driveTo(-16, 300, false);
-        // bot::toggleMatchLoader();
-        // pid::driveTo(17, 1000, false);
-        // intk::scoreHigh(100);
+        auton::runSelectedAuton();
     }
     void disabled() {
     }
