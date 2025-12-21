@@ -3,9 +3,8 @@
 #include "utils.hpp"
 
 namespace intk {
-    pros::Motor *mwide = new pros::Motor(-4),
-                *mtunnel = new pros::Motor(5),
-                *mtop = new pros::Motor(-10);
+    pros::Motor *mtop = new pros::Motor(-7),
+                *mbottom = new pros::Motor(-6);
     pros::Task *tloop = nullptr;
 
     bool doColorSort;
@@ -35,7 +34,7 @@ namespace intk {
         void limSpeed(int spdLimit) {
             speedLimit = spdLimit;
         }
-    } tunnel = {mtunnel, 0}, wide = {mwide, 0}, top = {mtop, 0};
+    } bottom = {mbottom, 0}, top = {mtop, 0};
     int power = 0;
 
     bool throwAway;
@@ -51,8 +50,7 @@ namespace intk {
     const int loopDelay = 3;
 
     void initialize() {
-        mwide->set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
-        mtunnel->set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+        mbottom->set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
         mtop->set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
 
         doColorSort = false;
@@ -75,44 +73,40 @@ namespace intk {
     }
 
     void intake(int pwr) {
-        tunnel.speed = pwr;
-        wide.speed = pwr;
+        bottom.speed = pwr;
         power = pwr;
         unloading = false;
     }
 
     void outtake(int pwr) {
-        tunnel.speed = -pwr;
-        wide.speed = -pwr;
+        bottom.speed = -pwr;
         power = pwr;
         unloading = true;
     }
 
     void scoreMid(int pwr) {
-        tunnel.speed = -pwr;
-        wide.speed = pwr;
+        bottom.speed = pwr;
         top.speed = -pwr;
         power = pwr;
         unloading = true;
     }
 
     void scoreHigh(int pwr) {
-        tunnel.speed = -pwr;
-        wide.speed = pwr;
+        bottom.speed = pwr;
         top.speed = pwr;
         power = pwr;
         unloading = true;
     }
 
     void stop() {
-        tunnel.speed = wide.speed = top.speed = power = 0;
+        bottom.speed = top.speed = power = 0;
     }
 
     void colorSort() {
     }
 
     void antiStuck() {
-        if (revTime <= 0 && (top.stuck() || tunnel.stuck() || wide.stuck())) {
+        if (revTime <= 0 && (top.stuck() || bottom.stuck())) {
             stuckFor += loopDelay;
         } else {
             stuckFor = 0;
@@ -148,24 +142,22 @@ namespace intk {
         if (revTime > 0) {
             startUpTime = 100; // give startup time if the intake is auto-reversing
             revTime -= loopDelay;
+            bottom.spin(utils::sign(bottom.speed) * -100);
             top.spin(utils::sign(top.speed) * -100);
-            tunnel.spin(utils::sign(tunnel.speed) * -100);
-            wide.spin(utils::sign(wide.speed) * -100);
         } else {
             // normal operation
-            tunnel.spin();
-            wide.spin();
+            bottom.spin();
             top.spin();
-            if (unloading && top.speed != 0) {
-                double topVelo = top.motor->get_actual_velocity();
-                // std::cout << tunnelVelo << std::endl;
-                if (fabs(topVelo) < 100)
-                    tunnel.limSpeed(10);
-                else
-                    tunnel.limSpeed(1000);
-            } else {
-                tunnel.limSpeed(1000);
-            }
+            // if (unloading && top.speed != 0) {
+            //     double topVelo = top.motor->get_actual_velocity();
+            //     // std::cout << tunnelVelo << std::endl;
+            //     if (fabs(topVelo) < 100)
+            //         tunnel.limSpeed(10);
+            //     else
+            //         tunnel.limSpeed(1000);
+            // } else {
+            //     tunnel.limSpeed(1000);
+            // }
         }
     }
 } // namespace intk
