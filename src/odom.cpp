@@ -33,9 +33,9 @@ namespace odom {
         angvelo = deltatheta * 1000.0 / loopDelay;
 
         // Get tracking wheel positions in centidegrees, convert to inches
-        // inches = centidegrees * π radians / 18000 * radius
-        double horizPos = bot::horizEnc.get_position() / 18000.0 * std::numbers::pi * encoderWheelRadius;
-        double vertPos = bot::vertEnc.get_position() / 18000.0 * std::numbers::pi * encoderWheelRadius;
+        // inches = centidegrees * π radians / (360 * 100) * radius = centidegrees * π / 36000 * radius
+        double horizPos = bot::horizEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius;
+        double vertPos = bot::vertEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius;
         
         // Calculate raw deltas
         double deltaHoriz = horizPos - prevHorizPos;
@@ -71,8 +71,8 @@ namespace odom {
     void initialize() {
         // prime previous readings before starting the task
         prevtheta = bot::imu.get_rotation() / 180.0 * std::numbers::pi;
-        prevHorizPos = bot::horizEnc.get_position() / 18000.0 * std::numbers::pi * encoderWheelRadius;
-        prevVertPos = bot::vertEnc.get_position() / 18000.0 * std::numbers::pi * encoderWheelRadius;
+        prevHorizPos = bot::horizEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius;
+        prevVertPos = bot::vertEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius;
 
         odomTask = new pros::Task([]() {while(1) odomLoop(); });
         xvelo = 0;
@@ -101,8 +101,8 @@ namespace odom {
         bot::imu.set_heading(heading);
         prevtheta = heading / 180.0 * std::numbers::pi;
         // Reset tracking wheel positions to current readings
-        prevHorizPos = bot::horizEnc.get_position() / 18000.0 * std::numbers::pi * encoderWheelRadius;
-        prevVertPos = bot::vertEnc.get_position() / 18000.0 * std::numbers::pi * encoderWheelRadius;
+        prevHorizPos = bot::horizEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius;
+        prevVertPos = bot::vertEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius;
     }
 
     void resetPose() {
