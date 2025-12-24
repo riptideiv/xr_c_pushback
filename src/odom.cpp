@@ -15,8 +15,6 @@ namespace odom {
     double xpos = 0,
            ypos = 0,
            prevtheta = 0,
-           prevLpos = 0,
-           prevRpos = 0,
            prevHorizPos = 0,
            prevVertPos = 0;
     // auxilliary variables
@@ -77,11 +75,11 @@ namespace odom {
         prevVertPos = bot::vertEnc.get_position() / 18000.0 * std::numbers::pi * encoderWheelRadius;
 
         odomTask = new pros::Task([]() {while(1) odomLoop(); });
-        xvelo = 0,
-        yvelo = 0,
-        speed = 0,
+        xvelo = 0;
+        yvelo = 0;
+        speed = 0;
         angvelo = 0;
-        xpos = 0,
+        xpos = 0;
         ypos = 0;
     }
 
