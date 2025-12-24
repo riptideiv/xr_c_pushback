@@ -6,5 +6,7 @@ namespace bot {
     const double horizOffset = 1.0, vertOffset = 2.4; // horiz offset = rightward is +, vert offset = forward is +
     void initialize_sensors() {
         imu.reset(1);
+        horizEnc.reset();
+        vertEnc.reset();
     }
 } // namespace bot
