@@ -5,11 +5,8 @@
 
 namespace chass {
     pros::MotorGroup mright({1, 3, -2}), mleft({-4, -9, 5});
-    pros::Rotation horizEnc(11), vertEnc(14);
     const double gearRatio = 3.0 / 4.0; // output revs / motor revs
     const double tuningK = 3;
-
-    const double horizOffset = 1.0, vertOffset = 2.4; // horiz offset = rightward is +, vert offset = forward is +
 
     double getLeftPos() { // left motors position in inches
         double ans = 0;
