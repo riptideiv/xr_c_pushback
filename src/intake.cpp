@@ -1,17 +1,22 @@
 #include "intake.hpp"
+#include "pneumatics.hpp"
 #include "pros/motors.hpp"
+#include "pros/optical.hpp"
 #include "utils.hpp"
 
 namespace intk {
     pros::Motor *mtop = new pros::Motor(-7),
-                *mbottom = new pros::Motor(-6);
+                *mbottom = new pros::Motor(6);
     pros::Task *tloop = nullptr;
+
+    pros::Optical colorSortSensor(12);
 
     bool doColorSort;
     bool colorSortRed;
     bool doAntiStuck;
 
     bool unloading;
+    bool scoringMid;
 
     struct intakeRoller {
         pros::Motor *motor;
@@ -42,7 +47,7 @@ namespace intk {
     int stuckFor;
 
     int revTime;
-    int frRevTime;
+    int topRevTime;
 
     int prevPwr;
     int startUpTime;
@@ -58,13 +63,14 @@ namespace intk {
         doAntiStuck = true;
 
         unloading = false;
+        scoringMid = false;
 
         throwAway = false;
 
         stuckFor = 0;
 
         revTime = 0;
-        frRevTime = 0;
+        topRevTime = 0;
 
         prevPwr = 0;
         startUpTime = 0;
@@ -73,29 +79,35 @@ namespace intk {
     }
 
     void intake(int pwr) {
+        top.speed = 0;
         bottom.speed = pwr;
         power = pwr;
         unloading = false;
+        scoringMid = false;
     }
 
     void outtake(int pwr) {
+        top.speed = -pwr;
         bottom.speed = -pwr;
         power = pwr;
         unloading = true;
+        scoringMid = false;
     }
 
     void scoreMid(int pwr) {
+        top.speed = 0;
         bottom.speed = pwr;
-        top.speed = -pwr;
         power = pwr;
         unloading = true;
+        scoringMid = true;
     }
 
     void scoreHigh(int pwr) {
-        bottom.speed = pwr;
         top.speed = pwr;
+        bottom.speed = pwr;
         power = pwr;
         unloading = true;
+        scoringMid = false;
     }
 
     void stop() {
@@ -103,6 +115,10 @@ namespace intk {
     }
 
     void colorSort() {
+        if ((colorSortSensor.get_hue() < 30 || colorSortSensor.get_hue() > 340) && !colorSortRed ||
+            (colorSortSensor.get_hue() > 120 && colorSortSensor.get_hue() < 270) && colorSortRed) {
+            topRevTime = 300;
+        }
     }
 
     void antiStuck() {
@@ -119,6 +135,9 @@ namespace intk {
     }
 
     void loop() {
+        // // debug
+        // topRevTime = 1000;
+
         pros::delay(loopDelay);
         if (startUpTime <= 0) {
             if (doColorSort) {
@@ -139,7 +158,13 @@ namespace intk {
         // record previous power to check for changes
         prevPwr = power;
 
-        if (revTime > 0) {
+        if (topRevTime > 0) {
+            revTime = 0;       // cancel bottom reverse if top is reversing
+            startUpTime = 100; // give startup time if the top intake is auto-reversing
+            topRevTime -= loopDelay;
+            bottom.spin();
+            top.spin(-100);
+        } else if (revTime > 0) {
             startUpTime = 100; // give startup time if the intake is auto-reversing
             revTime -= loopDelay;
             bottom.spin(utils::sign(bottom.speed) * -100);
@@ -148,6 +173,11 @@ namespace intk {
             // normal operation
             bottom.spin();
             top.spin();
+            if (scoringMid) { // retract upper ramp when scoring mid goal
+                bot::upperRamp.set_value(true);
+            } else {
+                bot::upperRamp.set_value(false);
+            }
             // if (unloading && top.speed != 0) {
             //     double topVelo = top.motor->get_actual_velocity();
             //     // std::cout << tunnelVelo << std::endl;

@@ -5,6 +5,8 @@
 namespace intk {
     extern pros::Motor *mwide, *mtunnel, *mtop;
 
+    extern bool colorSortRed;
+
     void initialize();
     void set(int power);
     void loop();

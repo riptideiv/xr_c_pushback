@@ -3,7 +3,7 @@
 #include "pros/motors.h"
 
 namespace chass {
-    pros::MotorGroup mleft({-7, -13, -21}), mright({20, 16, 17});
+    pros::MotorGroup mright({1, 3, -2}), mleft({-4, -9, 5});
     const double gearRatio = 3.0 / 4.0; // output revs / motor revs
     const double tuningK = 3;
 
@@ -27,8 +27,8 @@ namespace chass {
         return (getLeftPos() + getRightPos()) / 2.0;
     }
     void initialize() {
-        mleft.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
-        mright.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
+        mleft.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
+        mright.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
         mleft.set_encoder_units_all(pros::E_MOTOR_ENCODER_DEGREES);
         mright.set_encoder_units_all(pros::E_MOTOR_ENCODER_DEGREES);
     }
