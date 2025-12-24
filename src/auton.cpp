@@ -19,8 +19,7 @@ namespace auton {
         "None",
         "RightPreload",
         "LeftPreload",
-        "Skills"
-    };
+        "Skills"};
 
     void displaySelectedAuton() {
         bot::master.print(0, 0, "%s            ", selectedColor == Color::Red ? "Red" : "Blue");
@@ -41,30 +40,8 @@ namespace auton {
             case 0: // None
                 break;
             case 1: // RightPreload
-                bot::toggleDescoreArm();
-                pid::driveTo(33, 1500);
-                intk::scoreHigh(100);
-                pros::delay(300);
-                intk::stop();
-                pid::turnTo(-90, 1000);
-                pid::driveTo(20, 1000);
-                intk::scoreHigh(100);
                 break;
             case 2: // LeftPreload
-                bot::toggleDescoreArm();
-                intk::scoreHigh(100);
-                pros::delay(300);
-                intk::stop();
-                pid::driveTo(34, 1500);
-                bot::toggleMatchLoader();
-                pid::turnTo(90, 1000);
-                intk::intake(100);
-                pid::driveTo(-15, 1000);
-                pros::delay(500);
-                pid::driveTo(-16, 300, false);
-                bot::toggleMatchLoader();
-                pid::driveTo(17, 1000, false);
-                intk::scoreHigh(100);
                 break;
             case 3: // Skills
                 // Add skills routine here
@@ -75,30 +52,8 @@ namespace auton {
             case 0: // None
                 break;
             case 1: // RightPreload (mirrored)
-                bot::toggleDescoreArm();
-                pid::driveTo(33, 1500);
-                intk::scoreHigh(100);
-                pros::delay(300);
-                intk::stop();
-                pid::turnTo(90, 1000);
-                pid::driveTo(20, 1000);
-                intk::scoreHigh(100);
                 break;
             case 2: // LeftPreload (mirrored)
-                bot::toggleDescoreArm();
-                intk::scoreHigh(100);
-                pros::delay(300);
-                intk::stop();
-                pid::driveTo(34, 1500);
-                bot::toggleMatchLoader();
-                pid::turnTo(-90, 1000);
-                intk::intake(100);
-                pid::driveTo(-15, 1000);
-                pros::delay(500);
-                pid::driveTo(-16, 300, false);
-                bot::toggleMatchLoader();
-                pid::driveTo(17, 1000, false);
-                intk::scoreHigh(100);
                 break;
             case 3: // Skills
                 // Add skills routine here
@@ -127,20 +82,27 @@ namespace auton {
             // Y button: Toggle color (Red/Blue)
             if (bot::master.get_digital_new_press(DIGITAL_Y)) {
                 selectedColor = (selectedColor == Color::Red) ? Color::Blue : Color::Red;
+                if (selectedColor == Color::Red) {
+                    intk::colorSortRed = true;
+                } else {
+                    intk::colorSortRed = false;
+                }
                 update = true;
             }
 
             // X button: Next route
             if (bot::master.get_digital_new_press(DIGITAL_X)) {
                 selectedRoute++;
-                if (selectedRoute >= (int)routeDisplay.size()) selectedRoute = 0;
+                if (selectedRoute >= (int)routeDisplay.size())
+                    selectedRoute = 0;
                 update = true;
             }
 
             // B button: Previous route
             if (bot::master.get_digital_new_press(DIGITAL_B)) {
                 selectedRoute--;
-                if (selectedRoute < 0) selectedRoute = routeDisplay.size() - 1;
+                if (selectedRoute < 0)
+                    selectedRoute = routeDisplay.size() - 1;
                 update = true;
             }
 
@@ -164,7 +126,8 @@ namespace auton {
 
             pros::delay(20); // Prevent CPU overuse
 
-            if (!update) continue;
+            if (!update)
+                continue;
 
             updateSelectedAuton();
         }

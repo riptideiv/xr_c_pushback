@@ -29,6 +29,8 @@ namespace riptide {
         // utils::runAngularBSearchkD(2.25, 0, 200, 90, 1000); // 143.75
         while (1) {
             pros::delay(10);
+            if (auton::auton_ran == false)
+                continue;
             if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
                 intk::intake(100);
             } else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
@@ -40,6 +42,16 @@ namespace riptide {
             } else {
                 intk::stop();
             }
+            if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X)) {
+                bot::toggleTopDescore();
+            }
+            if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y)) {
+                bot::toggleMiddleDescore();
+            }
+            if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
+                bot::toggleMatchLoader();
+            }
+
             chass::arcade(master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y), master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X));
         }
     }
