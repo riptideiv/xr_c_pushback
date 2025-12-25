@@ -1,9 +1,11 @@
 #pragma once
 
 #include "main.h"
+#include "pros/optical.hpp"
 
 namespace intk {
     extern pros::Motor *mwide, *mtunnel, *mtop;
+    extern pros::Optical colorSortSensor;
 
     extern bool colorSortRed;
 

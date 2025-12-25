@@ -5,16 +5,15 @@
 namespace display {
     pros::Task *displayTask;
 
-    lv_obj_t *leftMotorsDisplay[3] = { nullptr };
-    lv_obj_t *rightMotorsDisplay[3] = { nullptr };
-    lv_obj_t *leftMotorsTempSquares[3] = { nullptr };
-    lv_obj_t *rightMotorsTempSquares[3] = { nullptr };
+    lv_obj_t *leftMotorsDisplay[3] = {nullptr};
+    lv_obj_t *rightMotorsDisplay[3] = {nullptr};
+    lv_obj_t *leftMotorsTempSquares[3] = {nullptr};
+    lv_obj_t *rightMotorsTempSquares[3] = {nullptr};
 
-    lv_obj_t *coordsDisplay = nullptr;
+    lv_obj_t *extraDisplay1 = nullptr;
     lv_obj_t *angleDisplay = nullptr;
 
     void displayMotorCurrentAndTemperature() {
-
     }
 
     void update() {
@@ -35,8 +34,8 @@ namespace display {
         rightMotorsDisplay[0] = lv_label_create(lv_scr_act());
         lv_obj_align(rightMotorsDisplay[0], LV_ALIGN_TOP_LEFT, 10, 40);
 
-        coordsDisplay = lv_label_create(lv_scr_act());
-        lv_obj_align(coordsDisplay, LV_ALIGN_TOP_LEFT, 10, 80);
+        extraDisplay1 = lv_label_create(lv_scr_act());
+        lv_obj_align(extraDisplay1, LV_ALIGN_TOP_LEFT, 10, 80);
 
         angleDisplay = lv_label_create(lv_scr_act());
         lv_obj_align(angleDisplay, LV_ALIGN_TOP_LEFT, 10, 120);
@@ -46,6 +45,6 @@ namespace display {
                 update();
                 pros::delay(500);
             }
-            });
+        });
     }
-}
+} // namespace display

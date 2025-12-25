@@ -1,5 +1,6 @@
 #include "riptide.hpp"
 #include "auton.hpp"
+#include "display.hpp"
 #include "intake.hpp"
 #include "main.h"
 #include "odom.hpp"
@@ -12,9 +13,11 @@
 namespace riptide {
     using bot::master;
     void initialize() {
+        lvgl_init();
         bot::initialize();
         odom::initialize();
         auton::initialize();
+        display::initialize();
     }
     void autonomous() {
         auton::runSelectedAuton();

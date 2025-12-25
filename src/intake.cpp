@@ -55,10 +55,12 @@ namespace intk {
     const int loopDelay = 3;
 
     void initialize() {
-        mbottom->set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+        colorSortSensor.set_led_pwm(100);
+
+        mbottom->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
         mtop->set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
 
-        doColorSort = false;
+        doColorSort = true;
         colorSortRed = true;
         doAntiStuck = true;
 
@@ -95,7 +97,7 @@ namespace intk {
     }
 
     void scoreMid(int pwr) {
-        top.speed = 0;
+        top.speed = pwr;
         bottom.speed = pwr;
         power = pwr;
         unloading = true;
@@ -115,6 +117,8 @@ namespace intk {
     }
 
     void colorSort() {
+        if (unloading)
+            return;
         if ((colorSortSensor.get_hue() < 30 || colorSortSensor.get_hue() > 340) && !colorSortRed ||
             (colorSortSensor.get_hue() > 120 && colorSortSensor.get_hue() < 270) && colorSortRed) {
             topRevTime = 300;
@@ -159,11 +163,11 @@ namespace intk {
         prevPwr = power;
 
         if (topRevTime > 0) {
-            revTime = 0;       // cancel bottom reverse if top is reversing
-            startUpTime = 100; // give startup time if the top intake is auto-reversing
+            revTime = 1;
+            startUpTime = 0; // give startup time if the top intake is auto-reversing
             topRevTime -= loopDelay;
             bottom.spin();
-            top.spin(-100);
+            top.spin(13000);
         } else if (revTime > 0) {
             startUpTime = 100; // give startup time if the intake is auto-reversing
             revTime -= loopDelay;
