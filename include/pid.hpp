@@ -6,7 +6,7 @@ namespace pid {
         double kP, kI, kD;
         // maxAccel: maximum change in controller output (units per second)
         double maxAccel;
-        PIDConsts(double p = 0, double i = 0, double d = 0, double maxA = 1000.0) : kP(p), kI(i), kD(d), maxAccel(maxA) {}
+        PIDConsts(double p = 0, double i = 0, double d = 0, double maxAccel = 1000.0) : kP(p), kI(i), kD(d), maxAccel(maxAccel) {}
     };
     extern PIDConsts linearConsts, angularConsts;
 
@@ -15,6 +15,7 @@ namespace pid {
      */
     struct MoveToPointParams {
         bool forwards = true;      // Whether to move forwards or backwards
+        bool straight = false;     // If true, only move straight (no turning) toward the point
         double maxSpeed = 127;     // Maximum speed (0-127)
         double minSpeed = 0;       // Minimum speed (0-127)
         double earlyExitRange = 0; // Exit early if within this distance (inches)
@@ -24,6 +25,7 @@ namespace pid {
      * Parameters for turnToHeading function (similar to lemlib).
      */
     struct TurnToHeadingParams {
+        bool forwards = true;      // If false, face 180 degrees away from `heading`
         double maxSpeed = 127;     // Maximum speed (0-127)
         double minSpeed = 0;       // Minimum speed (0-127)
         double earlyExitRange = 0; // Exit early if within this angle (degrees)
@@ -39,6 +41,15 @@ namespace pid {
         double earlyExitRange = 0; // Exit early if within this distance (inches)
         double lead = 0.6;         // How much the chassis should curve (0-1)
     };
+
+    // drive at speeds until certain distance
+    void driveDist(double lMult, double rMult, double target, bool reset = true, int timeoutMs = 2000);
+
+    // drive at speeds for certain time
+    void driveWait(double lMult, double rMult, int timeMs);
+
+    // drive at speeds until certain angle
+    void driveAngle(double lMult, double rMult, double targetAngle, bool reset = false, int timeoutMs = 2000);
 
     /**
      * Drive straight for a specified distance.
@@ -86,6 +97,27 @@ namespace pid {
     void turnToPoint(double x, double y, int timeout, TurnToHeadingParams params = {}, bool async = false);
 
     /**
+     * Swing turn to face a target heading while locking one side of the drivetrain.
+     * @param heading Target heading in degrees
+     * @param timeout Maximum time in milliseconds
+     * @param lockLeft If true, left side is locked and right side moves. If false, right side is locked and left side moves.
+     * @param params Turn parameters
+     * @param async Whether to run asynchronously
+     */
+    void swingToHeading(double heading, int timeout, bool lockLeft = true, TurnToHeadingParams params = {}, bool async = false);
+
+    /**
+     * Swing turn to face a target point while locking one side of the drivetrain.
+     * @param x Target X position in inches
+     * @param y Target Y position in inches
+     * @param timeout Maximum time in milliseconds
+     * @param lockLeft If true, left side is locked and right side moves. If false, right side is locked and left side moves.
+     * @param params Turn parameters
+     * @param async Whether to run asynchronously
+     */
+    void swingToPoint(double x, double y, int timeout, bool lockLeft = true, TurnToHeadingParams params = {}, bool async = false);
+
+    /**
      * Move to a target pose (position and heading) using a boomerang controller (similar to lemlib moveToPose).
      * @param x Target X position in inches
      * @param y Target Y position in inches
@@ -104,7 +136,7 @@ namespace pid {
      * @param maxSpeed Maximum speed (0-127)
      * @param async Whether to run asynchronously
      */
-    void followPath(const std::vector<std::pair<double, double>>& path, double lookahead, int timeout, double maxSpeed = 127, bool async = false);
+    void followPath(const std::vector<std::pair<double, double>> &path, double lookahead, int timeout, double maxSpeed = 127, bool async = false);
 
     /**
      * Cancel any running async movement.

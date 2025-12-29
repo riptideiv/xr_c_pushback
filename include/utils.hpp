@@ -2,6 +2,7 @@
 
 namespace utils {
     int sign(double val);
+    void turnAndDescore();
 
     // PID Tuning Functions
     void runFwdBwdTest(double target, int timeout);
@@ -14,4 +15,5 @@ namespace utils {
     void runLateralBSearchkD(double kP, double l, double r, double target, int timeout);
     void runAngularBSearchkP(double kD, double l, double r, double target, int timeout);
     void runAngularBSearchkD(double kP, double l, double r, double target, int timeout);
+    void findTrackingRadius();
 } // namespace utils

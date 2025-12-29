@@ -6,19 +6,25 @@
 #include "pneumatics.hpp"
 #include "robot.hpp"
 
+#include "auton_routes/elims.hpp"
+#include "auton_routes/quals.hpp"
+#include "auton_routes/skills.hpp"
+
 namespace auton {
     pros::Task *autonSelectTask = nullptr;
     bool auton_running = false;
     bool auton_ran = false;
 
-    Color selectedColor = Color::Red;
-    int selectedRoute = 0;
+    Color selectedColor = Color::Blue;
+    int selectedRoute = 2;
 
     // Route display names - customize these for your autonomous routines
     std::vector<std::string> routeDisplay = {
         "None",
-        "RightPreload",
-        "LeftPreload",
+        "RightQuals",
+        "LeftQuals",
+        "RightElims",
+        "LeftElims",
         "Skills"};
 
     void displaySelectedAuton() {
@@ -29,36 +35,37 @@ namespace auton {
 
     void updateSelectedAuton() {
         displaySelectedAuton();
+        if (selectedColor == Color::Red) {
+            intk::colorSortRed = true;
+        } else {
+            intk::colorSortRed = false;
+        }
     }
 
     void runSelectedAuton() {
+        odom::setPose(0, 0, 0);
         auton_running = true;
-        auton_ran = true;
 
-        if (selectedColor == Color::Red) {
-            switch (selectedRoute) {
-            case 0: // None
-                break;
-            case 1: // RightPreload
-                break;
-            case 2: // LeftPreload
-                break;
-            case 3: // Skills
-                // Add skills routine here
-                break;
-            }
-        } else { // Blue
-            switch (selectedRoute) {
-            case 0: // None
-                break;
-            case 1: // RightPreload (mirrored)
-                break;
-            case 2: // LeftPreload (mirrored)
-                break;
-            case 3: // Skills
-                // Add skills routine here
-                break;
-            }
+        switch (selectedRoute) {
+        case 0: // None
+            break;
+        case 1: // RightQuals
+            rightQuals();
+            break;
+        case 2: // LeftQuals
+            leftQuals();
+            break;
+        case 3: // RightElims
+            rightElims();
+            break;
+        case 4: // LeftElims
+            leftElims();
+            break;
+        case 5: // Skills
+            autonSkills();
+            break;
+        default:
+            break;
         }
         auton_running = false;
         chass::drive127(0, 0);
@@ -82,11 +89,6 @@ namespace auton {
             // Y button: Toggle color (Red/Blue)
             if (bot::master.get_digital_new_press(DIGITAL_Y)) {
                 selectedColor = (selectedColor == Color::Red) ? Color::Blue : Color::Red;
-                if (selectedColor == Color::Red) {
-                    intk::colorSortRed = true;
-                } else {
-                    intk::colorSortRed = false;
-                }
                 update = true;
             }
 
@@ -135,6 +137,7 @@ namespace auton {
     }
 
     void initialize() {
+        updateSelectedAuton();
         autonSelectTask = new pros::Task(autonSelectLoop);
     }
 } // namespace auton

@@ -9,7 +9,8 @@ namespace auton {
     extern bool auton_running;
     extern bool auton_ran;
 
-    enum class Color { Red, Blue };
+    enum class Color { Red,
+                       Blue };
 
     extern Color selectedColor;
     extern int selectedRoute;

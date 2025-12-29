@@ -2,14 +2,16 @@
 #include "main.h"
 #include "robot.hpp"
 #include "sensors.hpp"
+#include <atomic>
 #include <cmath>
 #include <numbers>
 namespace odom {
     // constants
-    const double loopDelay = 10;        // loop delay in msecs
-    const double trackWidth = 12.15625; // track width in inches
-    const double wheelRadius = 1.625;   // 3.25 inch wheels
-    const double encoderWheelRadius = 1.0; // 2 inch tracking wheels (radius = 1 inch)
+    const double loopDelay = 10;             // loop delay in msecs
+    const double trackWidth = 12.15625;      // track width in inches
+    const double wheelRadius = 1.625;        // 3.25 inch wheels
+    const double encoderWheelRadius = 1.375; // 2.75 inch tracking wheels (radius = 1.375 inch)
+    const double scalingF = 24.0 / 11.2;     // scaling factor for odom (empirically determined)
 
     // main tracking variables
     double xpos = 0,
@@ -22,11 +24,44 @@ namespace odom {
            yvelo = 0,
            speed = 0,
            angvelo = 0;
+    double newxpos = 0,
+           newypos = 0,
+           newtheta = 0;
+    static std::atomic<bool> settingPose{false};
+
+    double getVertPos() {
+        return bot::vertEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius * scalingF;
+    }
+
+    double getHorizPos() {
+        return bot::horizEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius * scalingF;
+    }
+
     void odomLoop() {
         pros::delay(loopDelay);
+        if (settingPose.load()) {
+            xpos = newxpos;
+            ypos = newypos;
+            bot::imu.set_rotation(newtheta);
+            // Give the IMU a moment to apply the heading, then read the actual reported heading
+            pros::delay(5);
+            double actualHeading = bot::imu.get_rotation();
+            // Use the IMU's reported heading for prevtheta so odom doesn't see a large rotation jump
+            prevtheta = -actualHeading / 180.0 * std::numbers::pi;
+            // Also update newtheta to reflect what the IMU actually reports
+            newtheta = actualHeading;
+            // Reset tracking wheel positions to current readings (include scalingF like main loop)
+            prevHorizPos = getHorizPos();
+            prevVertPos = getVertPos();
+            settingPose.store(false);
+            return;
+        }
 
         // Get IMU heading
         double theta = bot::imu.get_rotation() / 180.0 * std::numbers::pi; // convert to radians
+
+        theta = -theta; // invert to match coordinate system
+
         double deltatheta = theta - prevtheta;
         prevtheta = theta;
 
@@ -34,13 +69,13 @@ namespace odom {
 
         // Get tracking wheel positions in centidegrees, convert to inches
         // inches = centidegrees * π radians / (360 * 100) * radius = centidegrees * π / 36000 * radius
-        double horizPos = bot::horizEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius;
-        double vertPos = bot::vertEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius;
-        
+        double horizPos = getHorizPos();
+        double vertPos = getVertPos();
+
         // Calculate raw deltas
         double deltaHoriz = horizPos - prevHorizPos;
         double deltaVert = vertPos - prevVertPos;
-        
+
         prevHorizPos = horizPos;
         prevVertPos = vertPos;
 
@@ -70,9 +105,10 @@ namespace odom {
     pros::Task *odomTask;
     void initialize() {
         // prime previous readings before starting the task
-        prevtheta = bot::imu.get_rotation() / 180.0 * std::numbers::pi;
-        prevHorizPos = bot::horizEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius;
-        prevVertPos = bot::vertEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius;
+        // match odomLoop sign convention (theta is later negated) and include scalingF for encoder positions
+        prevtheta = -bot::imu.get_rotation() / 180.0 * std::numbers::pi;
+        prevHorizPos = bot::horizEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius * scalingF;
+        prevVertPos = bot::vertEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius * scalingF;
 
         odomTask = new pros::Task([]() {while(1) odomLoop(); });
         xvelo = 0;
@@ -96,13 +132,11 @@ namespace odom {
     }
 
     void setPose(double x, double y, double heading) {
-        xpos = x;
-        ypos = y;
-        bot::imu.set_heading(heading);
-        prevtheta = heading / 180.0 * std::numbers::pi;
-        // Reset tracking wheel positions to current readings
-        prevHorizPos = bot::horizEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius;
-        prevVertPos = bot::vertEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius;
+        settingPose.store(true);
+        newxpos = x;
+        newypos = y;
+        newtheta = heading;
+        pros::delay(loopDelay); // wait for odom loop to set the pose
     }
 
     void resetPose() {
@@ -122,5 +156,9 @@ namespace odom {
         // Adjust so 0 degrees is forward (positive Y direction)
         double angleRad = std::atan2(dx, dy);
         return angleRad * 180.0 / std::numbers::pi;
+    }
+
+    void debugPrint() {
+        std::cout << "X, Y: ( " << getX() << ", " << getY() << " ), Heading: " << getHeading() << std::endl;
     }
 } // namespace odom

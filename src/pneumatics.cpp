@@ -4,27 +4,41 @@
 namespace bot {
     pros::adi::DigitalOut topDescore('F'), middleDescore('H'), upperRamp('G'), matchLoader('D');
 
+    bool topDescoreState = false, middleDescoreState = false, upperRampState = false, matchLoaderState = false;
+
     void toggleTopDescore() {
-        static bool state = false;
-        state = !state;
-        topDescore.set_value(state);
+        topDescore.set_value(topDescoreState = !topDescoreState);
     }
 
     void toggleMiddleDescore() {
-        static bool state = false;
-        state = !state;
-        middleDescore.set_value(state);
+        middleDescore.set_value(middleDescoreState = !middleDescoreState);
     }
 
     void toggleUpperRamp() {
-        static bool state = false;
-        state = !state;
-        upperRamp.set_value(state);
+        upperRamp.set_value(upperRampState = !upperRampState);
     }
 
     void toggleMatchLoader() {
-        static bool state = false;
-        state = !state;
+        matchLoader.set_value(matchLoaderState = !matchLoaderState);
+    }
+
+    void setTopDescore(bool state) {
+        topDescore.set_value(state);
+        topDescoreState = state;
+    }
+
+    void setMiddleDescore(bool state) {
+        middleDescore.set_value(state);
+        middleDescoreState = state;
+    }
+
+    void setUpperRamp(bool state) {
+        upperRamp.set_value(state);
+        upperRampState = state;
+    }
+
+    void setMatchLoader(bool state) {
         matchLoader.set_value(state);
+        matchLoaderState = state;
     }
 } // namespace bot

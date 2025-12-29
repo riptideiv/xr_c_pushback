@@ -41,7 +41,7 @@ namespace display {
         // displayMotorCurrentAndTemperature();
 
         lv_label_set_text_fmt(extraDisplay1, "colorSortSensor: %d", (int)(intk::colorSortSensor.get_hue() * 100));
-        lv_label_set_text_fmt(extraDisplay2, "Angle: %d deg", (int)(odom::getHeading() * 100));
+        lv_label_set_text_fmt(extraDisplay2, "Angle: %d deg, xPos: %d, yPos: %d", (int)(odom::getHeading() * 100), (int)(odom::getX() * 100), (int)(odom::getY() * 100));
     }
 
     void initialize() {

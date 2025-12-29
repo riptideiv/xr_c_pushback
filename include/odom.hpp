@@ -9,6 +9,9 @@ namespace odom {
     void initialize();
     void pdrive(int targ, int t);
 
+    double getVertPos();  // vertical tracking wheel position in inches
+    double getHorizPos(); // horizontal tracking wheel position in inches
+
     /**
      * Get the current X position in inches.
      */
@@ -52,4 +55,9 @@ namespace odom {
      * @return Angle in degrees
      */
     double angleTo(double targetX, double targetY);
+
+    /**
+     * Print the current odometry readings for debugging.
+     */
+    void debugPrint();
 } // namespace odom

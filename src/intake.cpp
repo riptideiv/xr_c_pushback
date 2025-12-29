@@ -80,6 +80,14 @@ namespace intk {
         tloop = new pros::Task([]() {while(1) loop(); });
     }
 
+    void setPowers(int topPwr, int bottomPwr, bool unloadingIntake, bool scoringMidGoal) {
+        top.speed = topPwr;
+        bottom.speed = bottomPwr;
+        unloading = unloadingIntake;
+        scoringMid = scoringMidGoal;
+        power = std::max(abs(topPwr), abs(bottomPwr));
+    }
+
     void intake(int pwr) {
         top.speed = 0;
         bottom.speed = pwr;
@@ -89,7 +97,7 @@ namespace intk {
     }
 
     void outtake(int pwr) {
-        top.speed = -pwr;
+        top.speed = -pwr * 0.7;
         bottom.speed = -pwr;
         power = pwr;
         unloading = true;
@@ -116,12 +124,16 @@ namespace intk {
         bottom.speed = top.speed = power = 0;
     }
 
+    bool wrongColorDetected() {
+        return (colorSortSensor.get_hue() < 30 || colorSortSensor.get_hue() > 340) && !colorSortRed ||
+               (colorSortSensor.get_hue() > 120 && colorSortSensor.get_hue() < 270) && colorSortRed;
+    }
+
     void colorSort() {
         if (unloading)
             return;
-        if ((colorSortSensor.get_hue() < 30 || colorSortSensor.get_hue() > 340) && !colorSortRed ||
-            (colorSortSensor.get_hue() > 120 && colorSortSensor.get_hue() < 270) && colorSortRed) {
-            topRevTime = 300;
+        if (wrongColorDetected()) {
+            topRevTime = 150;
         }
     }
 

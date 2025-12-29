@@ -16,28 +16,38 @@ namespace riptide {
         lvgl_init();
         bot::initialize();
         odom::initialize();
-        auton::initialize();
         display::initialize();
+        master.rumble("-");
     }
     void autonomous() {
         auton::runSelectedAuton();
     }
     void disabled() {
+        while (1) {
+            pros::delay(100);
+            auton::auton_ran = true;
+        }
     }
     void opcontrol() {
         // utils::runLateralPID_kPs(0, 10, 11, 2, 24, 2000);
-        // utils::runLateralBSearchkP(0, 0, 10, 24, 2000); // 6.25
-        // utils::runLateralBSearchkD(6.25, 0, 100, 24, 2000); // 75
-        // utils::runAngularBSearchkP(0, 0, 10, 90, 1000); // 1.875
-        // utils::runAngularBSearchkD(2.25, 0, 200, 90, 1000); // 143.75
+        // utils::runLateralBSearchkP(0, 0, 10, 24, 2000);
+        // utils::runLateralBSearchkD(6, 0, 500, 48, 2000); // P=6, D=250
+        // utils::runAngularBSearchkP(0, 0, 10, 90, 1000);
+        // utils::runAngularBSearchkD(6, 0, 2000, 90, 1000); // (6,375)
+        auton::initialize();
         while (1) {
             pros::delay(10);
             if (auton::auton_ran == false)
                 continue;
+
+            // intake control
             if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
                 intk::intake(100);
             } else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
-                intk::outtake(100);
+                if (master.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN))
+                    intk::outtake(60);
+                else
+                    intk::outtake(100);
             } else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
                 intk::scoreHigh(100);
             } else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
@@ -45,6 +55,8 @@ namespace riptide {
             } else {
                 intk::stop();
             }
+
+            // pneumatic control
             if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X)) {
                 bot::toggleTopDescore();
             }
@@ -55,6 +67,15 @@ namespace riptide {
                 bot::toggleMatchLoader();
             }
 
+            // macros
+            if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
+                utils::turnAndDescore();
+            }
+
+            // debugPrint
+            if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)) {
+                odom::debugPrint();
+            }
             chass::arcade(master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y), master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X));
         }
     }

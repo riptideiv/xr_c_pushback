@@ -8,10 +8,14 @@ namespace intk {
     extern pros::Optical colorSortSensor;
 
     extern bool colorSortRed;
+    extern bool doColorSort;
+    extern bool doAntiStuck;
+    extern bool scoringMid;
 
     void initialize();
-    void set(int power);
+    bool wrongColorDetected();
     void loop();
+    void setPowers(int topPwr, int bottomPwr, bool unloadingIntake, bool scoringMidGoal);
     void intake(int power);
     void outtake(int power);
     void scoreMid(int power);

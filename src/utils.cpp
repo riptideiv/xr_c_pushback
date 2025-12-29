@@ -1,6 +1,8 @@
 #include "utils.hpp"
 #include "chassis.hpp"
+#include "odom.hpp"
 #include "pid.hpp"
+#include "pneumatics.hpp"
 #include "robot.hpp"
 #include "sensors.hpp"
 #include <iostream>
@@ -13,6 +15,22 @@ namespace utils {
             return -1;
         return 0;
     }
+
+    void turnAndDescore() {
+        bot::setMatchLoader(false);
+        odom::setPose(0, 0, 0);
+        bot::setTopDescore(true);
+        pid::driveAngle(-1, 1, -110, false, 850);
+        pid::turnToHeading(-180, 420);
+        odom::setPose(0, 0, 0);
+        pid::moveToPoint(0, -10, 700, {.forwards = false, .straight = true, .earlyExitRange = 4});
+        bot::setTopDescore(false);
+        pid::moveToPoint(0, -10, 300, {.forwards = false, .straight = true, .earlyExitRange = 2});
+        pid::moveToPoint(0, 2, 1000, {.straight = true, .maxSpeed = 60, .minSpeed = 30, .earlyExitRange = 5});
+        chass::drive(0, 0);
+    }
+
+    // ============== PID Tuning ==============
 
     void runFwdBwdTest(double target, int timeout) {
         pid::driveTo(target, timeout);
@@ -170,5 +188,42 @@ namespace utils {
                 }
             }
         }
+    }
+
+    void findTrackingRadius() {
+        double avgHoriz = 0;
+        double avgVert = 0;
+        double avgL = 0;
+        double avrR = 0;
+        for (int i = 0; i < 5; i++) {
+            int t = clock();
+            int speed = 30 + (i * 10);
+            std::cout << "Run " << (i + 1) << " with speed: " << speed << '\n';
+            chass::drive(speed, -speed);
+            pros::delay(1000);
+            bot::horizEnc.reset();
+            double initL = chass::getLeftPos();
+            double initR = chass::getRightPos();
+            double initAngle = bot::imu.get_rotation();
+            pros::delay(3000);
+            double circumf = M_PI * 2.75; // 2.75 inch diameter tracking wheels
+            double posHoriz = bot::horizEnc.get_position() / 36000.0 * circumf;
+            double posVert = bot::vertEnc.get_position() / 36000.0 * circumf;
+            double posL = chass::getLeftPos() - initL;
+            double posR = chass::getRightPos() - initR;
+            double angle = (bot::imu.get_rotation() - initAngle) / 180.0 * M_PI;
+            std::cout << "horizRadius: " << (posHoriz / angle) << '\n'
+                      << "vertRadius: " << (posVert / angle) << '\n'
+                      << "leftRadius: " << (posL / angle) << '\n'
+                      << "rightRadius: " << (posR / angle) << '\n';
+            avgHoriz += (posHoriz / angle);
+            avgVert += (posVert / angle);
+            avgL += (posL / angle);
+            avrR += (posR / angle);
+        }
+        std::cout << "average horiz radius: " << (avgHoriz / 5) << '\n'
+                  << "average vert radius: " << (avgVert / 5) << '\n'
+                  << "avgL: " << (avgL / 5) << '\n'
+                  << "avgR: " << (avrR / 5) << '\n';
     }
 } // namespace utils
