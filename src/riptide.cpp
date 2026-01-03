@@ -28,6 +28,7 @@ namespace riptide {
             auton::auton_ran = true;
         }
     }
+    bool opControlActive = false;
     void opcontrol() {
         // utils::runLateralPID_kPs(0, 10, 11, 2, 24, 2000);
         // utils::runLateralBSearchkP(0, 0, 10, 24, 2000);
@@ -37,8 +38,14 @@ namespace riptide {
         auton::initialize();
         while (1) {
             pros::delay(10);
-            if (auton::auton_ran == false)
+            if (auton::auton_ran == false) {
+                opControlActive = false;
                 continue;
+            }
+            // if (opControlActive == false) {
+            //     bot::setTopDescore(true);
+            //     opControlActive = true;
+            // }
 
             // intake control
             if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
@@ -69,7 +76,7 @@ namespace riptide {
 
             // macros
             if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
-                utils::turnAndDescore();
+                utils::turnAndSetupDescoreBackward();
             }
 
             // debugPrint

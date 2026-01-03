@@ -16,16 +16,26 @@ namespace utils {
         return 0;
     }
 
+    void turnAndSetupDescoreBackward() {
+        bot::setMatchLoader(false);
+        odom::setPose(0, 0, 0);
+        pid::driveAngle(1, -1, 30, false, 500);
+        pid::turnToHeading(50, 250);
+        bot::setTopDescore(false);
+        pid::swingToHeading(0, 500, true, {.maxSpeed = 70});
+    }
+
     void turnAndDescore() {
         bot::setMatchLoader(false);
         odom::setPose(0, 0, 0);
         bot::setTopDescore(true);
         pid::driveAngle(-1, 1, -110, false, 850);
-        pid::turnToHeading(-180, 420);
-        odom::setPose(0, 0, 0);
-        pid::moveToPoint(0, -10, 700, {.forwards = false, .straight = true, .earlyExitRange = 4});
+        pid::turnToHeading(-170, 420);
+        odom::setPose(0, 0, 10);
+        pid::moveToPoint(-1, -10, 700, {.forwards = false, .straight = true, .earlyExitRange = 4});
         bot::setTopDescore(false);
-        pid::moveToPoint(0, -10, 300, {.forwards = false, .straight = true, .earlyExitRange = 2});
+        pid::moveToPoint(-1, -10, 300, {.forwards = false, .straight = true, .earlyExitRange = 2});
+        pid::turnToHeading(0, 300, {.minSpeed = 15, .earlyExitRange = 5});
         pid::moveToPoint(0, 2, 1000, {.straight = true, .maxSpeed = 60, .minSpeed = 30, .earlyExitRange = 5});
         chass::drive(0, 0);
     }

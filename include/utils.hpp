@@ -2,6 +2,7 @@
 
 namespace utils {
     int sign(double val);
+    void turnAndSetupDescoreBackward();
     void turnAndDescore();
 
     // PID Tuning Functions

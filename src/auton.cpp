@@ -16,7 +16,7 @@ namespace auton {
     bool auton_ran = false;
 
     Color selectedColor = Color::Blue;
-    int selectedRoute = 2;
+    int selectedRoute = 3;
 
     // Route display names - customize these for your autonomous routines
     std::vector<std::string> routeDisplay = {
