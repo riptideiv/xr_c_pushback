@@ -196,6 +196,8 @@ namespace pid {
         const int loopMs = 10;
         int startTime = pros::millis();
 
+        bool goingForward = params.forwards;
+
         while (pros::millis() - startTime < timeout && !motionCancelled) {
             pros::delay(loopMs);
 
@@ -208,10 +210,30 @@ namespace pid {
             }
 
             // Calculate angle to target
-            double targetAngle = odom::angleTo(x, y);
-            if (!params.forwards) {
-                targetAngle = normalizeAngle(targetAngle + 180);
+            double fwdAngle = odom::angleTo(x, y);
+            double bwdAngle = normalizeAngle(fwdAngle + 180);
+            double fwdAngularError = normalizeAngle(fwdAngle - odom::getHeading());
+            double bwdAngularError = normalizeAngle(bwdAngle - odom::getHeading());
+
+            if (distance < params.allowReverseRange) {
+                // within allowReverseRange, can consider switching direction
+                if (goingForward) {
+                    // currently going forward, check if should switch to backward
+                    if (fabs(bwdAngularError) < params.reverseSwitchThreshold) {
+                        goingForward = false;
+                    }
+                } else {
+                    // currently going backward, check if should switch to forward
+                    if (fabs(fwdAngularError) < params.reverseSwitchThreshold) {
+                        goingForward = true;
+                    }
+                }
+            } else {
+                // take .forwards flag
+                goingForward = params.forwards;
             }
+
+            double targetAngle = goingForward ? fwdAngle : bwdAngle;
             double currentAngle = odom::getHeading();
             double angularError = normalizeAngle(targetAngle - currentAngle);
 
@@ -222,9 +244,13 @@ namespace pid {
             double linearOutput = linearConsts.kP * linearError + linearConsts.kI * linearIntegral + linearConsts.kD * linearDerivative;
 
             // Apply direction
-            if (!params.forwards) {
+            if (!goingForward) {
                 linearOutput = -linearOutput;
             }
+
+            // apply smooth angular gating
+            double heading_scale = clamp(cos((angularError / 90.0) * (std::numbers::pi / 2.0)), 0.0, 1.0);
+            linearOutput *= heading_scale;
 
             // Angular PID
             angularIntegral += angularError * loopMs;
@@ -280,7 +306,7 @@ namespace pid {
         motionRunning = false;
     }
 
-    void moveToPoint(double x, double y, int timeout, MoveToPointParams params, bool async) {
+    void mv2pt(double x, double y, int timeout, MoveToPointParams params, bool async) {
         if (async) {
             if (asyncTask != nullptr) {
                 cancelMotion();
@@ -342,7 +368,7 @@ namespace pid {
         motionRunning = false;
     }
 
-    void turnToHeading(double heading, int timeout, TurnToHeadingParams params, bool async) {
+    void turn2hd(double heading, int timeout, TurnToHeadingParams params, bool async) {
         if (params.forwards == false) {
             heading = normalizeAngle(heading + 180);
         }
@@ -449,7 +475,7 @@ namespace pid {
         motionRunning = false;
     }
 
-    void swingToHeading(double heading, int timeout, bool lockLeft, TurnToHeadingParams params, bool async) {
+    void swing2hd(double heading, int timeout, bool lockLeft, TurnToHeadingParams params, bool async) {
         if (async) {
             if (asyncTask != nullptr) {
                 cancelMotion();
@@ -462,221 +488,14 @@ namespace pid {
         }
     }
 
-    void turnToPoint(double x, double y, int timeout, TurnToHeadingParams params, bool async) {
+    void turn2pt(double x, double y, int timeout, TurnToHeadingParams params, bool async) {
         double targetHeading = odom::angleTo(x, y);
-        turnToHeading(targetHeading, timeout, params, async);
+        turn2hd(targetHeading, timeout, params, async);
     }
 
-    void swingToPoint(double x, double y, int timeout, bool lockLeft, TurnToHeadingParams params, bool async) {
+    void swing2pt(double x, double y, int timeout, bool lockLeft, TurnToHeadingParams params, bool async) {
         double targetHeading = odom::angleTo(x, y);
-        swingToHeading(targetHeading, timeout, lockLeft, params, async);
-    }
-
-    void moveToPoseSync(double x, double y, double theta, int timeout, MoveToPoseParams params) {
-        motionRunning = true;
-        motionCancelled = false;
-
-        const int loopMs = 10;
-        int startTime = pros::millis();
-
-        double prevLinearOutput = 0;
-        double prevAngularOutput = 0;
-
-        while (pros::millis() - startTime < timeout && !motionCancelled) {
-            pros::delay(loopMs);
-
-            double distance = odom::distanceTo(x, y);
-
-            // Check early exit
-            if (params.earlyExitRange > 0 && distance < params.earlyExitRange) {
-                break;
-            }
-
-            // Boomerang controller: create a carrot point
-            double targetAngleRad = theta * std::numbers::pi / 180.0;
-            double carrotX = x - params.lead * distance * std::sin(targetAngleRad);
-            double carrotY = y - params.lead * distance * std::cos(targetAngleRad);
-
-            // Calculate angle to carrot
-            double carrotAngle = odom::angleTo(carrotX, carrotY);
-            if (!params.forwards) {
-                carrotAngle = normalizeAngle(carrotAngle + 180);
-            }
-
-            double angularError = normalizeAngle(carrotAngle - odom::getHeading());
-
-            // Linear output based on distance
-            double linearOutput = linearConsts.kP * distance;
-            linearOutput = clamp(linearOutput, -params.maxSpeed, params.maxSpeed);
-
-            // Angular output
-            double angularOutput = angularConsts.kP * angularError;
-            angularOutput = clamp(angularOutput, -params.maxSpeed, params.maxSpeed);
-
-            // Apply minimum speed
-            if (fabs(linearOutput) < params.minSpeed && fabs(linearOutput) > 0.1) {
-                linearOutput = (linearOutput > 0) ? params.minSpeed : -params.minSpeed;
-            }
-
-            // Rate limit
-            double maxLinearDelta = linearConsts.maxAccel * (loopMs / 1000.0);
-            linearOutput = prevLinearOutput + clamp(linearOutput - prevLinearOutput, -maxLinearDelta, maxLinearDelta);
-
-            double maxAngularDelta = angularConsts.maxAccel * (loopMs / 1000.0);
-            angularOutput = prevAngularOutput + clamp(angularOutput - prevAngularOutput, -maxAngularDelta, maxAngularDelta);
-
-            // Calculate wheel speeds
-            double leftSpeed = linearOutput + angularOutput;
-            double rightSpeed = linearOutput - angularOutput;
-
-            // Normalize if exceeding max
-            double maxOutput = std::max(fabs(leftSpeed), fabs(rightSpeed));
-            if (maxOutput > params.maxSpeed) {
-                leftSpeed = leftSpeed / maxOutput * params.maxSpeed;
-                rightSpeed = rightSpeed / maxOutput * params.maxSpeed;
-            }
-
-            // Apply direction
-            if (!params.forwards) {
-                leftSpeed = -leftSpeed;
-                rightSpeed = -rightSpeed;
-            }
-
-            chass::drive127(leftSpeed, rightSpeed);
-
-            prevLinearOutput = linearOutput;
-            prevAngularOutput = angularOutput;
-        }
-
-        // Final turn to target heading if needed
-        if (!motionCancelled) {
-            turnToHeadingSync(theta, 500, {.maxSpeed = params.maxSpeed, .minSpeed = params.minSpeed, .earlyExitRange = 2});
-        }
-
-        chass::drive127(0, 0);
-        motionRunning = false;
-    }
-
-    void moveToPose(double x, double y, double theta, int timeout, MoveToPoseParams params, bool async) {
-        if (async) {
-            if (asyncTask != nullptr) {
-                cancelMotion();
-            }
-            asyncTask = new pros::Task([x, y, theta, timeout, params]() {
-                moveToPoseSync(x, y, theta, timeout, params);
-            });
-        } else {
-            moveToPoseSync(x, y, theta, timeout, params);
-        }
-    }
-
-    void followPathSync(const std::vector<std::pair<double, double>> &path, double lookahead, int timeout, double maxSpeed) {
-        if (path.empty())
-            return;
-
-        motionRunning = true;
-        motionCancelled = false;
-
-        const int loopMs = 10;
-        int startTime = pros::millis();
-        size_t currentWaypoint = 0;
-
-        double prevLinearOutput = 0;
-        double prevAngularOutput = 0;
-
-        while (pros::millis() - startTime < timeout && !motionCancelled && currentWaypoint < path.size()) {
-            pros::delay(loopMs);
-
-            double currentX = odom::getX();
-            double currentY = odom::getY();
-
-            // Find lookahead point
-            double lookaheadX = path[currentWaypoint].first;
-            double lookaheadY = path[currentWaypoint].second;
-
-            // Progress through waypoints
-            while (currentWaypoint < path.size() - 1) {
-                double dx = path[currentWaypoint].first - currentX;
-                double dy = path[currentWaypoint].second - currentY;
-                double dist = std::sqrt(dx * dx + dy * dy);
-
-                if (dist < lookahead) {
-                    currentWaypoint++;
-                } else {
-                    break;
-                }
-            }
-
-            // Interpolate lookahead point along path segment
-            if (currentWaypoint < path.size()) {
-                lookaheadX = path[currentWaypoint].first;
-                lookaheadY = path[currentWaypoint].second;
-            }
-
-            // Calculate curvature to lookahead point
-            double dx = lookaheadX - currentX;
-            double dy = lookaheadY - currentY;
-            double distance = std::sqrt(dx * dx + dy * dy);
-
-            // Check if we've reached the end
-            if (currentWaypoint >= path.size() - 1 && distance < lookahead / 2) {
-                break;
-            }
-
-            // Calculate angle to lookahead
-            double targetAngle = odom::angleTo(lookaheadX, lookaheadY);
-            double angularError = normalizeAngle(targetAngle - odom::getHeading());
-
-            // Pure pursuit curvature: 2 * sin(error) / distance
-            double curvature = (distance > 0.01) ? (2.0 * std::sin(angularError * std::numbers::pi / 180.0) / distance) : 0;
-
-            // Calculate wheel speeds
-            double linearOutput = maxSpeed * (1.0 - std::abs(curvature) * 5);
-            linearOutput = clamp(linearOutput, maxSpeed * 0.3, maxSpeed);
-
-            double angularOutput = curvature * linearOutput * 10;
-            angularOutput = clamp(angularOutput, -maxSpeed, maxSpeed);
-
-            // Rate limit
-            double maxLinearDelta = linearConsts.maxAccel * (loopMs / 1000.0);
-            linearOutput = prevLinearOutput + clamp(linearOutput - prevLinearOutput, -maxLinearDelta, maxLinearDelta);
-
-            double maxAngularDelta = angularConsts.maxAccel * (loopMs / 1000.0);
-            angularOutput = prevAngularOutput + clamp(angularOutput - prevAngularOutput, -maxAngularDelta, maxAngularDelta);
-
-            double leftSpeed = linearOutput + angularOutput;
-            double rightSpeed = linearOutput - angularOutput;
-
-            // Normalize
-            double maxOutput = std::max(fabs(leftSpeed), fabs(rightSpeed));
-            if (maxOutput > maxSpeed) {
-                leftSpeed = leftSpeed / maxOutput * maxSpeed;
-                rightSpeed = rightSpeed / maxOutput * maxSpeed;
-            }
-
-            chass::drive127(leftSpeed, rightSpeed);
-
-            prevLinearOutput = linearOutput;
-            prevAngularOutput = angularOutput;
-        }
-
-        chass::drive127(0, 0);
-        motionRunning = false;
-    }
-
-    void followPath(const std::vector<std::pair<double, double>> &path, double lookahead, int timeout, double maxSpeed, bool async) {
-        if (async) {
-            if (asyncTask != nullptr) {
-                cancelMotion();
-            }
-            // Need to copy the path for async
-            std::vector<std::pair<double, double>> pathCopy = path;
-            asyncTask = new pros::Task([pathCopy, lookahead, timeout, maxSpeed]() {
-                followPathSync(pathCopy, lookahead, timeout, maxSpeed);
-            });
-        } else {
-            followPathSync(path, lookahead, timeout, maxSpeed);
-        }
+        swing2hd(targetHeading, timeout, lockLeft, params, async);
     }
 
     void cancelMotion() {

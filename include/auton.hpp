@@ -1,10 +1,12 @@
 #pragma once
 
 #include "main.h"
+#include "pid.hpp"
 #include <string>
 #include <vector>
 
 namespace auton {
+
     extern pros::Task *autonSelectTask;
     extern bool auton_running;
     extern bool auton_ran;
