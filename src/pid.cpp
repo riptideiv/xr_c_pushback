@@ -1,15 +1,16 @@
 #include "pid.hpp"
-#include "chassis.hpp"
 #include "odom.hpp"
+#include "robot.hpp"
 #include "sensors.hpp"
 #include "utils.hpp"
 #include <atomic>
 #include <cmath>
+#include <iostream>
 #include <numbers>
 
 namespace pid {
     PIDConsts linearConsts(6, 0.0, 250, 10000000);
-    PIDConsts angularConsts(6, 0.0, 375, 10000000);
+    PIDConsts angularConsts(6, 0.0, 296.875, 10000000);
 
     // Async motion control
     static std::atomic<bool> motionRunning{false};
@@ -51,7 +52,7 @@ namespace pid {
         if (reset) {
             bot::imu.set_rotation(0);
         }
-        double imu = bot::imu.get_rotation();
+        double imu = bot::getRotation();
         double error = targetAngle - imu;
         double prevError = error;
         int startTime = pros::millis();
@@ -59,7 +60,7 @@ namespace pid {
             if (timeoutMs > 0 && pros::millis() - startTime >= timeoutMs)
                 break;
             prevError = error;
-            error = targetAngle - bot::imu.get_rotation();
+            error = targetAngle - bot::getRotation();
             chass::drive127(lMult * 127, rMult * 127);
             pros::delay(10);
         }
@@ -137,7 +138,7 @@ namespace pid {
         if (resetAng) {
             bot::imu.set_heading(0);
         }
-        double error = target - bot::imu.get_rotation();
+        double error = target - bot::getRotation();
         double prevError = error;
         double integral = 0;
         const int loopMs = 10;
@@ -145,7 +146,7 @@ namespace pid {
         int startTime = pros::millis();
         while (pros::millis() - startTime < timeLimit) {
             pros::delay(loopMs);
-            error = target - bot::imu.get_rotation();
+            error = target - bot::getRotation();
             integral += error * loopMs;
             double derivative = (error - prevError) / (double)loopMs;
             double desired = angularConsts.kP * error + angularConsts.kI * integral + angularConsts.kD * derivative;
@@ -215,47 +216,30 @@ namespace pid {
             double fwdAngularError = normalizeAngle(fwdAngle - odom::getHeading());
             double bwdAngularError = normalizeAngle(bwdAngle - odom::getHeading());
 
-            if (distance < params.allowReverseRange) {
-                // within allowReverseRange, can consider switching direction
-                if (goingForward) {
-                    // currently going forward, check if should switch to backward
-                    if (fabs(bwdAngularError) < params.reverseSwitchThreshold) {
-                        goingForward = false;
-                    }
-                } else {
-                    // currently going backward, check if should switch to forward
-                    if (fabs(fwdAngularError) < params.reverseSwitchThreshold) {
-                        goingForward = true;
-                    }
-                }
-            } else {
-                // take .forwards flag
-                goingForward = params.forwards;
-            }
+            goingForward = params.forwards;
 
             double targetAngle = goingForward ? fwdAngle : bwdAngle;
             double currentAngle = odom::getHeading();
             double angularError = normalizeAngle(targetAngle - currentAngle);
 
-            // Linear PID
-            double linearError = distance;
-            linearIntegral += linearError * loopMs;
-            double linearDerivative = (linearError - prevLinearError) / (double)loopMs;
-            double linearOutput = linearConsts.kP * linearError + linearConsts.kI * linearIntegral + linearConsts.kD * linearDerivative;
-
-            // Apply direction
-            if (!goingForward) {
-                linearOutput = -linearOutput;
-            }
-
-            // apply smooth angular gating
-            double heading_scale = clamp(cos((angularError / 90.0) * (std::numbers::pi / 2.0)), 0.0, 1.0);
-            linearOutput *= heading_scale;
-
             // Angular PID
             angularIntegral += angularError * loopMs;
             double angularDerivative = (angularError - prevAngularError) / (double)loopMs;
             double angularOutput = angularConsts.kP * angularError + angularConsts.kI * angularIntegral + angularConsts.kD * angularDerivative;
+
+            if (distance < 10) {
+                angularOutput = 0;
+            }
+
+            // Linear PID
+            double linearError = distance * cos(normalizeAngle(fwdAngle - currentAngle) * std::numbers::pi / 180.0); // effective distance in the forward direction
+            linearIntegral += linearError * loopMs;
+            double linearDerivative = (linearError - prevLinearError) / (double)loopMs;
+            double linearOutput = linearConsts.kP * linearError + linearConsts.kI * linearIntegral + linearConsts.kD * linearDerivative;
+
+            // apply smooth angular gating to linear output
+            double heading_scale = clamp(1.0 - fabs(pow(angularError / 180.0, 4)), 0, 1);
+            linearOutput *= heading_scale;
 
             // If straight flag is set, disable angular output and reset angular internals
             if (params.straight) {

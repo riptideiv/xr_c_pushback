@@ -18,7 +18,7 @@ namespace pid {
         double earlyExitRange = 0; // Exit early if within this distance (inches)
 
         double allowReverseRange = 5.0;       // range within which reversing is allowed (inches). this is to prevent overshooting the target and then turning 180 degrees
-        double reverseSwitchThreshold = 15.0; // angle threshold to switch to reverse mode (degrees)
+        double reverseSwitchThreshold = 60.0; // angle threshold to switch to reverse mode (degrees)
     };
 
     struct TurnToHeadingParams {

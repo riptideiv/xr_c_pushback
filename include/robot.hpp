@@ -9,5 +9,6 @@ namespace bot {
     extern pros::Controller master;
 
     void initialize();
+    double getRotation();
 
 } // namespace bot

@@ -3,6 +3,7 @@
 #include "odom.hpp"
 #include "pid.hpp"
 #include "pneumatics.hpp"
+#include "pros/motors.h"
 #include "robot.hpp"
 #include "sensors.hpp"
 #include <iostream>
@@ -22,7 +23,7 @@ namespace utils {
         pid::driveAngle(1, -1, 30, false, 500);
         pid::turn2hd(50, 250);
         bot::setTopDescore(false);
-        pid::swing2hd(0, 500, true, {.maxSpeed = 70});
+        pid::swing2hd(0, 700, true, {.maxSpeed = 70});
     }
 
     void turnAndDescore() {
@@ -53,14 +54,14 @@ namespace utils {
     }
 
     void runTurnTest(double target, int timeout) {
-        double startAngle = bot::imu.get_rotation();
+        double startAngle = bot::getRotation();
         pid::turnTo(target, timeout);
-        double endAngle = bot::imu.get_rotation();
+        double endAngle = bot::getRotation();
         std::cout << "turn: " << (endAngle - startAngle) << std::endl;
 
-        startAngle = bot::imu.get_rotation();
+        startAngle = bot::getRotation();
         pid::turnTo(0, timeout);
-        endAngle = bot::imu.get_rotation();
+        endAngle = bot::getRotation();
         std::cout << "turn back: " << (endAngle - startAngle) << std::endl;
     }
 
@@ -205,23 +206,27 @@ namespace utils {
         double avgVert = 0;
         double avgL = 0;
         double avrR = 0;
+        chass::mleft.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+        chass::mright.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
         for (int i = 0; i < 5; i++) {
             int t = clock();
-            int speed = 30 + (i * 10);
+            int speed = 30 + (i * 5);
             std::cout << "Run " << (i + 1) << " with speed: " << speed << '\n';
+            bot::horizEnc.reset();
+            bot::vertEnc.reset();
+            pros::delay(500);
             chass::drive(speed, -speed);
             pros::delay(1000);
-            bot::horizEnc.reset();
             double initL = chass::getLeftPos();
             double initR = chass::getRightPos();
-            double initAngle = bot::imu.get_rotation();
+            double initAngle = bot::getRotation();
             pros::delay(3000);
             double circumf = M_PI * 2.75; // 2.75 inch diameter tracking wheels
             double posHoriz = bot::horizEnc.get_position() / 36000.0 * circumf;
             double posVert = bot::vertEnc.get_position() / 36000.0 * circumf;
             double posL = chass::getLeftPos() - initL;
             double posR = chass::getRightPos() - initR;
-            double angle = (bot::imu.get_rotation() - initAngle) / 180.0 * M_PI;
+            double angle = (bot::getRotation() - initAngle) / 180.0 * M_PI;
             std::cout << "horizRadius: " << (posHoriz / angle) << '\n'
                       << "vertRadius: " << (posVert / angle) << '\n'
                       << "leftRadius: " << (posL / angle) << '\n'
@@ -230,6 +235,7 @@ namespace utils {
             avgVert += (posVert / angle);
             avgL += (posL / angle);
             avrR += (posR / angle);
+            chass::drive(0, 0);
         }
         std::cout << "average horiz radius: " << (avgHoriz / 5) << '\n'
                   << "average vert radius: " << (avgVert / 5) << '\n'

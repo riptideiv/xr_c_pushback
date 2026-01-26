@@ -16,7 +16,7 @@ namespace auton {
     bool auton_ran = false;
 
     Color selectedColor = Color::Blue;
-    int selectedRoute = 3;
+    int selectedRoute = 2;
 
     // Route display names - customize these for your autonomous routines
     std::vector<std::string> routeDisplay = {
@@ -25,7 +25,8 @@ namespace auton {
         "LeftQuals",
         "RightElims",
         "LeftElims",
-        "Skills"};
+        "Skills",
+        "SoloAWP"};
 
     void displaySelectedAuton() {
         bot::master.print(0, 0, "%s            ", selectedColor == Color::Red ? "Red" : "Blue");
@@ -63,6 +64,9 @@ namespace auton {
             break;
         case 5: // Skills
             autonSkills();
+            break;
+        case 6: // Solo AWP
+            soloAWP();
             break;
         default:
             break;

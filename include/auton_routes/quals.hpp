@@ -5,134 +5,132 @@
 #include "odom.hpp"
 #include "pid.hpp"
 #include "pneumatics.hpp"
+#include "pros/imu.hpp"
 #include "pros/rtos.hpp"
+#include "sensors.hpp"
 #include "utils.hpp"
 namespace auton {
-    void leftQuals() {
-        odom::setPose(-0.2, 3.22, 0);
-        // get group of 3 balls
-        pid::mv2pt(0, 12, 1000, {.straight = true, .maxSpeed = 60, .earlyExitRange = 5});
-        intk::intake(100);
-        pid::swing2hd(-45, 550, true, {.maxSpeed = 60});
-        pid::mv2pt(-6.72568, 26.9864, 750, {.straight = true});
+    void soloAWP() {
+        odom::setPose(-1.2, -1, bot::imu.get_heading());
+        // push alliance
+        pid::mv2pt(-1.2, -6.43803, 1000, {.forwards = false, .earlyExitRange = 3});
 
-        // score in mid goal
-        pid::turn2pt(14.2, 48.5, 500, {.forwards = false});
-        intk::setPowers(-100, -5, 0, 0);
-        pid::driveWait(-0.2, -0.2, 300);
-        intk::stop();
-        pid::mv2pt(14.5, 48.2, 1000, {.forwards = false, .straight = true, .maxSpeed = 60, .earlyExitRange = 4});
-        intk::scoringMid = true;
-        pros::delay(100);
+        // matchload1
+        pid::mv2pt(1.40939, 47, 1350);
+        pid::turn2hd(90, 550);
+        bot::setMatchLoader(true);
+        pid::turn2hd(90, 250);
+        intk::intake(100);
+        pid::mv2pt(16.5, 47, 1000);
+
+        // scorehigh1
+        // bot::toggleMatchLoader();
+        pid::mv2pt(-21.7014, 47, 800, {.forwards = false});
+        intk::scoreHigh(100);
+        pid::mv2pt(-21.7014, 47, 1400, {.forwards = false});
+
+        // ballstacks_pickup
+        bot::setMatchLoader(false);
+        pid::turn2hd(170, 600);
+        intk::intake(100);
+        pid::mv2pt(-27, 19.6489, 1000, {.maxSpeed = 60, .minSpeed = 40, .earlyExitRange = 5});
+        bot::setMatchLoader(true);
+        pid::mv2pt(-26.2776, -31.0652, 1500, {.earlyExitRange = 40});
+        bot::setMatchLoader(false);
+        pid::mv2pt(-26.2776, -31.0652, 1500, {.earlyExitRange = 35});
+        pid::mv2pt(-26.2776, -31.0652, 1000, {.maxSpeed = 50, .earlyExitRange = 10});
+        bot::setMatchLoader(true);
+        pid::mv2pt(-26.2776, -31.0652, 500, {.maxSpeed = 50});
+
+        // middlegoal
+        pid::turn2pt(-39.747, -13.7, 300, {.forwards = false});
+        intk::setPowers(-80, 20, 0, 0);
+        pid::mv2pt(-39.747, -13.7, 500, {.forwards = false});
         intk::scoreMid(100);
-        pid::driveWait(-0.1, -0.1, 600);
+        pid::mv2pt(-39.747, -13.7, 1200, {.forwards = false});
+        bot::setMatchLoader(false);
         intk::scoreMid(0);
-        pid::driveWait(-0.1, -0.1, 200);
+
+        // matchload2
+        pid::mv2pt(-1, -52.5, 1200);
+        intk::intake(0);
+        pid::turn2hd(90, 300);
+        bot::setMatchLoader(true);
+        pid::turn2hd(90, 250);
         intk::intake(100);
+        pid::mv2pt(16.5, -52.5, 1000);
 
-        // go to match loader
-        bot::setTopDescore(true);
-        pid::driveDist(0.2, 0.2, 1); // NOT NEEDED IN ELIMS VERSION (in case i forget)
-        pid::turn2pt(-28, 12.5, 500);
-        intk::stop();
-        pid::mv2pt(-28, 12.5, 1500, {.earlyExitRange = 15});
-        pid::mv2pt(-28, 12.5, 1500, {.maxSpeed = 20, .earlyExitRange = 4});
-        pid::driveWait(0.02, 0.02, 150);
+        // scorehigh2
+        pid::mv2pt(-19.9499, -54, 850, {.forwards = false});
+        intk::scoreHigh(100);
+        pid::mv2pt(-19.9499, -54, 500, {.forwards = false});
+        bot::setMatchLoader(false);
+        pid::mv2pt(-19.9499, -54, 1500, {.forwards = false});
+    }
+    void leftQuals() {
+        pid::mv2pt(0.0476588, 13.6139, 1000, {.maxSpeed = 60, .earlyExitRange = 6});
+        intk::intake(100);
+        pid::turn2pt(-14.7303, 27.8797, 800, {.maxSpeed = 60, .earlyExitRange = 30});
+        pid::mv2pt(-15.2, 27.8797, 1000, {.maxSpeed = 80, .earlyExitRange = 10});
+        bot::setMatchLoader(true);
+        pid::mv2pt(-15.2, 27.8797, 500);
+
+        pid::mv2pt(-3.50458, 33.2605, 1000, {.forwards = false, .earlyExitRange = 10});
+        intk::outtake(10);
+        pid::mv2pt(2.1268, 39.9448, 1000, {.forwards = false, .earlyExitRange = 4});
+        intk::scoreMid(100);
+        pid::mv2pt(2.1268, 39.9448, 1000, {.forwards = false});
+        intk::scoreMid(0);
+        bot::setMatchLoader(false);
+
+        pid::mv2pt(-38, -1.03778, 1300);
         pid::turn2hd(180, 500);
-
-        // match load
-        bot::toggleMatchLoader();
+        bot::setMatchLoader(true);
         pros::delay(250);
         intk::intake(100);
-        pid::mv2pt(-29, 0.27722, 1000, {.straight = true, .earlyExitRange = 2});
-        pid::driveWait(0.4, 0.4, 800); // NEED TEST
+        pid::mv2pt(-38, -16, 1000, {.straight = true});
 
-        // score in high goal
-        pid::mv2pt(-32.5, 33.5, 1000, {.forwards = false, .earlyExitRange = 3});
-        pid::driveWait(-0.5, -0.5, 300);
+        pid::mv2pt(-38.618, 19.0416, 1000, {.forwards = false});
         intk::scoreHigh(100);
-        pid::turn2hd(180, 700);
-        for (int i = 0; i < 190 && !intk::wrongColorDetected(); i++) {
-            pros::delay(10);
-        } // 2.2 seconds max wait
-        bot::toggleMatchLoader();
+        pros::delay(1200);
         intk::stop();
 
-        // // push high goal balls into control zone (turnAndDescore)
-        // utils::turnAndDescore();
-        // intk::scoreHigh(100);
-        // odom::setPose(0, 0, 0);
-        // pid::moveToPoint(0, 9, 350, {.straight = true});
-        // pid::driveWait(0.4, -0.25, 300);
-
-        // turnAndSetupDescoreBackward
         utils::turnAndSetupDescoreBackward();
-        intk::outtake(100);
-        odom::setPose(0, 0, 0);
-        pid::mv2pt(0, -20, 1000, {.forwards = false, .straight = true, .earlyExitRange = 3});
-        pid::driveWait(-0.4, 0.25, 300);
-        pid::driveWait(-0.05, 0.05, 5000);
+        pid::mv2pt(12.6945, -18.088, 1000, {.forwards = false, .earlyExitRange = 5});
+        pid::turn2hd(-20, 5000);
     }
     void rightQuals() {
-        odom::setPose(-0.34, 4.02, 0);
-        // get group of 3 balls
-        pid::mv2pt(0, 11.5, 1000, {.straight = true, .maxSpeed = 60, .earlyExitRange = 5});
+        pid::mv2pt(-0.0476588, 13.6139, 1000, {.maxSpeed = 60, .earlyExitRange = 6});
         intk::intake(100);
-        pid::swing2hd(45, 700, false, {.maxSpeed = 60});
-        pid::mv2pt(4.54353, 30, 750, {.straight = true});
-        pid::driveDist(0.25, 0.25, -2);
-        chass::drive(0, 0);
-        odom::debugPrint();
+        pid::turn2pt(14.7303, 27.8797, 800, {.maxSpeed = 60, .earlyExitRange = 30});
+        pid::mv2pt(15.2, 27.8797, 1000, {.maxSpeed = 60, .earlyExitRange = 12});
+        bot::setMatchLoader(true);
+        pid::mv2pt(15.2, 27.8797, 500);
+        bot::setMatchLoader(false);
+        pid::driveWait(-0.3, -0.3, 300);
 
-        // score in low goal
-        pid::turn2pt(-1.7, 41.5, 500);
-        intk::setPowers(-100, 5, 0, 0);
-        pid::mv2pt(-1.7, 41.5, 1000, {.straight = true, .maxSpeed = 60, .earlyExitRange = 4});
+        pid::turn2pt(-0.232422, 36.5455, 800);
+        pid::mv2pt(-2.732422, 39.0455, 700);
+        bot::setMatchLoader(true);
         intk::outtake(100);
-        pid::driveWait(0.05, -0.05, 600);
-        pid::driveWait(-0.2, -0.2, 400);
-        intk::intake(100);
-
-        // go to match loader
-        bot::setTopDescore(true);
-        pid::swing2hd(0, 1000, true, {.earlyExitRange = 10}); // NOT NEEDED IN ELIMS VERSION (in case i forget to remove after copy pasting)
-        pid::turn2pt(37, 21, 700);
+        pid::driveWait(0.25, 0.25, 1400);
+        bot::setMatchLoader(false);
         intk::stop();
-        pid::mv2pt(37, 21, 1500, {.earlyExitRange = 15});
-        pid::mv2pt(37, 21, 1500, {.maxSpeed = 20, .earlyExitRange = 4});
-        pid::driveWait(0.02, 0.02, 150);
-        pid::turn2hd(180, 500);
 
-        // match load
-        bot::toggleMatchLoader();
+        pid::mv2pt(36.5171, 1.50574, 1250, {.forwards = false});
+        pid::turn2hd(-180, 1000);
+        bot::setMatchLoader(true);
         pros::delay(250);
         intk::intake(100);
-        pid::mv2pt(42, 5, 1000, {.straight = true, .earlyExitRange = 4});
-        pid::driveWait(0.4, 0.4, 800);
+        pid::mv2pt(37.5171, -15.5, 1000, {.straight = true});
 
-        // score in high goal
-        pid::mv2pt(41.3385, 37, 1000, {.forwards = false, .earlyExitRange = 3});
+        pid::mv2pt(37.7, 20.0416, 1000, {.forwards = false});
         intk::scoreHigh(100);
-        pid::turn2hd(180, 700);
-        for (int i = 0; i < 200 && !intk::wrongColorDetected(); i++) {
-            pros::delay(10);
-        } // 2.2 seconds max wait
-        bot::toggleMatchLoader();
+        pros::delay(1200);
         intk::stop();
 
-        // // push high goal balls into control zone (turnAndDescore)
-        // utils::turnAndDescore();
-        // intk::scoreHigh(100);
-        // odom::setPose(0, 0, 0);
-        // pid::moveToPoint(0, 9, 350, {.straight = true});
-        // pid::driveWait(0.4, -0.25, 300);
-
-        // turnAndSetupDescoreBackward
         utils::turnAndSetupDescoreBackward();
-        intk::outtake(100);
-        odom::setPose(0, 0, 0);
-        pid::mv2pt(0, -20, 1000, {.forwards = false, .straight = true, .minSpeed = 30, .earlyExitRange = 5});
-        pid::driveWait(-0.4, 0.25, 300);
-        pid::driveWait(-0.05, 0.05, 5000);
+        pid::mv2pt(12.6945, -18.088, 1000, {.forwards = false, .earlyExitRange = 5});
+        pid::turn2hd(-20, 5000);
     }
 } // namespace auton

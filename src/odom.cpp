@@ -45,7 +45,7 @@ namespace odom {
             bot::imu.set_rotation(newtheta);
             // Give the IMU a moment to apply the heading, then read the actual reported heading
             pros::delay(5);
-            double actualHeading = bot::imu.get_rotation();
+            double actualHeading = bot::getRotation();
             // Use the IMU's reported heading for prevtheta so odom doesn't see a large rotation jump
             prevtheta = -actualHeading / 180.0 * std::numbers::pi;
             // Also update newtheta to reflect what the IMU actually reports
@@ -58,7 +58,7 @@ namespace odom {
         }
 
         // Get IMU heading
-        double theta = bot::imu.get_rotation() / 180.0 * std::numbers::pi; // convert to radians
+        double theta = bot::getRotation() / 180.0 * std::numbers::pi; // convert to radians
 
         theta = -theta; // invert to match coordinate system
 
@@ -106,7 +106,7 @@ namespace odom {
     void initialize() {
         // prime previous readings before starting the task
         // match odomLoop sign convention (theta is later negated) and include scalingF for encoder positions
-        prevtheta = -bot::imu.get_rotation() / 180.0 * std::numbers::pi;
+        prevtheta = -bot::getRotation() / 180.0 * std::numbers::pi;
         prevHorizPos = bot::horizEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius * scalingF;
         prevVertPos = bot::vertEnc.get_position() / 36000.0 * std::numbers::pi * encoderWheelRadius * scalingF;
 
@@ -128,7 +128,7 @@ namespace odom {
     }
 
     double getHeading() {
-        return bot::imu.get_rotation();
+        return bot::getRotation();
     }
 
     void setPose(double x, double y, double heading) {

@@ -34,7 +34,8 @@ namespace riptide {
         // utils::runLateralBSearchkP(0, 0, 10, 24, 2000);
         // utils::runLateralBSearchkD(6, 0, 500, 48, 2000); // P=6, D=250
         // utils::runAngularBSearchkP(0, 0, 10, 90, 1000);
-        // utils::runAngularBSearchkD(6, 0, 2000, 90, 1000); // (6,375)
+        // utils::runAngularBSearchkD(6, 0, 2000, 45, 1000); // (6,296.875)
+        // utils::findTrackingRadius();
         auton::initialize();
         while (1) {
             pros::delay(10);
@@ -51,10 +52,10 @@ namespace riptide {
             if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
                 intk::intake(100);
             } else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
-                if (master.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN))
-                    intk::outtake(60);
-                else
-                    intk::outtake(100);
+                // if (master.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN))
+                //     intk::outtake(60);
+                // else
+                intk::outtake(100);
             } else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
                 intk::scoreHigh(100);
             } else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
@@ -64,8 +65,13 @@ namespace riptide {
             }
 
             // pneumatic control
-            if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X)) {
-                bot::toggleTopDescore();
+            // if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X)) {
+            //     bot::toggleTopDescore();
+            // }
+            if (master.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) {
+                bot::setTopDescore(true);
+            } else {
+                bot::setTopDescore(false);
             }
             if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y)) {
                 bot::toggleMiddleDescore();
