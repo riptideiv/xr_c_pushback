@@ -11,6 +11,7 @@ namespace intk {
     extern bool doColorSort;
     extern bool doAntiStuck;
     extern bool scoringMid;
+    extern bool skills_midgoal;
 
     void initialize();
     bool wrongColorDetected();

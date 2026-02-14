@@ -42,7 +42,7 @@ namespace odom {
         if (settingPose.load()) {
             xpos = newxpos;
             ypos = newypos;
-            bot::imu.set_rotation(newtheta);
+            bot::setRotation(newtheta);
             // Give the IMU a moment to apply the heading, then read the actual reported heading
             pros::delay(5);
             double actualHeading = bot::getRotation();

@@ -60,5 +60,6 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+    std::cout << "Opcontrol" << std::endl;
     riptide::opcontrol();
 }

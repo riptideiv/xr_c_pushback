@@ -2,7 +2,7 @@
 #include "pros/adi.hpp"
 
 namespace bot {
-    pros::adi::DigitalOut topDescore('F'), middleDescore('H'), upperRamp('G'), matchLoader('D');
+    pros::adi::DigitalOut topDescore('E'), middleDescore('C'), upperRamp('X'), matchLoader('B');
 
     bool topDescoreState = false, middleDescoreState = false, upperRampState = false, matchLoaderState = false;
 

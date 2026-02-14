@@ -50,7 +50,7 @@ namespace pid {
 
     void driveAngle(double lMult, double rMult, double targetAngle, bool reset, int timeoutMs) {
         if (reset) {
-            bot::imu.set_rotation(0);
+            bot::setRotation(0);
         }
         double imu = bot::getRotation();
         double error = targetAngle - imu;
@@ -136,7 +136,7 @@ namespace pid {
     }
     void turnTo(double target, int timeLimit, bool resetAng) {
         if (resetAng) {
-            bot::imu.set_heading(0);
+            bot::setHeading(0);
         }
         double error = target - bot::getRotation();
         double prevError = error;

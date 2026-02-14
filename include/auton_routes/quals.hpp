@@ -11,7 +11,7 @@
 #include "utils.hpp"
 namespace auton {
     void soloAWP() {
-        odom::setPose(-1.2, -1, bot::imu.get_heading());
+        odom::setPose(-1.2, -1, bot::getRotation());
         // push alliance
         pid::mv2pt(-1.2, -6.43803, 1000, {.forwards = false, .earlyExitRange = 3});
 

@@ -5,11 +5,13 @@
 #include "utils.hpp"
 
 namespace intk {
-    pros::Motor *mtop = new pros::Motor(-7),
-                *mbottom = new pros::Motor(6);
+    pros::Motor *mtop = new pros::Motor(16),
+                *mbottom = new pros::Motor(1);
     pros::Task *tloop = nullptr;
 
-    pros::Optical colorSortSensor(12);
+    // Port 12 is now Stacked Left Chassis, conflict for Optical
+    // pros::Optical colorSortSensor(12);
+    pros::Optical colorSortSensor(0); // Disabled pending new port
 
     bool doColorSort;
     bool colorSortRed;
@@ -104,8 +106,12 @@ namespace intk {
         scoringMid = false;
     }
 
+    bool skills_midgoal = false;
     void scoreMid(int pwr) {
-        top.speed = pwr;
+        if (skills_midgoal) {
+            top.speed = std::min(pwr, 55);
+        } else
+            top.speed = std::min(pwr, 70);
         bottom.speed = pwr;
         power = pwr;
         unloading = true;
@@ -125,6 +131,9 @@ namespace intk {
     }
 
     bool wrongColorDetected() {
+        if (colorSortSensor.get_proximity() < 40 || !colorSortSensor.is_installed())
+            return false;
+
         return (colorSortSensor.get_hue() < 30 || colorSortSensor.get_hue() > 340) && !colorSortRed ||
                (colorSortSensor.get_hue() > 120 && colorSortSensor.get_hue() < 270) && colorSortRed;
     }
@@ -190,9 +199,11 @@ namespace intk {
             bottom.spin();
             top.spin();
             if (scoringMid) { // retract upper ramp when scoring mid goal
-                bot::upperRamp.set_value(true);
+                // bot::upperRamp.set_value(true);
+                bot::middleDescore.set_value(true);
             } else {
-                bot::upperRamp.set_value(false);
+                // bot::upperRamp.set_value(false);
+                bot::middleDescore.set_value(false);
             }
             // if (unloading && top.speed != 0) {
             //     double topVelo = top.motor->get_actual_velocity();

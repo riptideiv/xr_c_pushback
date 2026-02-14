@@ -1,5 +1,6 @@
 #include "riptide.hpp"
 #include "auton.hpp"
+// #include "auton_routes/skills.hpp"
 #include "display.hpp"
 #include "intake.hpp"
 #include "main.h"
@@ -29,12 +30,12 @@ namespace riptide {
         }
     }
     bool opControlActive = false;
+    bool skillsMacroRan = false;
     void opcontrol() {
-        // utils::runLateralPID_kPs(0, 10, 11, 2, 24, 2000);
         // utils::runLateralBSearchkP(0, 0, 10, 24, 2000);
         // utils::runLateralBSearchkD(6, 0, 500, 48, 2000); // P=6, D=250
         // utils::runAngularBSearchkP(0, 0, 10, 90, 1000);
-        // utils::runAngularBSearchkD(6, 0, 2000, 45, 1000); // (6,296.875)
+        utils::runAngularBSearchkD(6, 100, 300, 45, 1000); // London found (6,150) the other day
         // utils::findTrackingRadius();
         auton::initialize();
         while (1) {
@@ -42,6 +43,19 @@ namespace riptide {
             if (auton::auton_ran == false) {
                 opControlActive = false;
                 continue;
+            }
+            if (!skillsMacroRan && auton::selectedRoute == 5) { // skills
+                skillsMacroRan = true;
+                intk::skills_midgoal = true;
+                bot::setTopDescore(true);
+                intk::intake(100);
+                pid::driveWait(0.2, 0.2, 500);
+                pid::driveWait(0.2, 0.15, 350);
+                pid::driveWait(0.15, 0.2, 350);
+                pid::driveWait(0.7, 0.7, 400);
+                pid::driveWait(0.05, 0.05, 500);
+                pid::driveWait(-0.2, -0.2, 300);
+                pid::driveWait(0.2, 0.2, 200);
             }
             // if (opControlActive == false) {
             //     bot::setTopDescore(true);
@@ -68,14 +82,14 @@ namespace riptide {
             // if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X)) {
             //     bot::toggleTopDescore();
             // }
-            if (master.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) {
+            if (intk::skills_midgoal || master.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) {
                 bot::setTopDescore(true);
             } else {
                 bot::setTopDescore(false);
             }
-            if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y)) {
-                bot::toggleMiddleDescore();
-            }
+            // if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y)) {
+            //     bot::toggleMiddleDescore();
+            // }
             if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
                 bot::toggleMatchLoader();
             }

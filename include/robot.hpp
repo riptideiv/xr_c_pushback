@@ -7,6 +7,7 @@
 
 namespace bot {
     extern pros::Controller master;
+    extern bool skills_midgoal;
 
     void initialize();
     double getRotation();

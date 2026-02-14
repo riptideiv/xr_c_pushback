@@ -4,7 +4,7 @@
 #include "pros/rotation.hpp"
 
 namespace chass {
-    pros::MotorGroup mright({1, 3, -2}), mleft({-4, -9, 5});
+    pros::MotorGroup mright({-17, 20, 18}), mleft({12, -4, -13});
     const double gearRatio = 3.0 / 4.0; // output revs / motor revs
     const double tuningK = 3;
 

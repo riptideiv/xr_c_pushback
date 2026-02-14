@@ -9,11 +9,15 @@
 #include "utils.hpp"
 namespace auton {
     void autonSkills() {
-        utils::turnAndSetupDescoreBackward();
-        intk::outtake(100);
-        odom::setPose(0, 0, 0);
-        pid::driveDist(0.6, 0.6, -12);
-        pid::driveWait(-0.4, 0.25, 300);
-        pid::driveWait(-0.05, 0.05, 5000);
+        intk::skills_midgoal = true;
+        bot::setTopDescore(true);
+        intk::intake(100);
+        pid::driveWait(0.2, 0.2, 500);
+        pid::driveWait(0.2, 0.15, 350);
+        pid::driveWait(0.15, 0.2, 350);
+        pid::driveWait(0.7, 0.7, 400);
+        pid::driveWait(0.05, 0.05, 500);
+        pid::driveWait(-0.2, -0.2, 300);
+        pid::driveWait(0.2, 0.2, 200);
     }
 } // namespace auton
