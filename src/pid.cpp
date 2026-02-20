@@ -9,7 +9,7 @@
 #include <numbers>
 
 namespace pid {
-    PIDConsts linearConsts(6, 0.0, 250, 10000000);
+    PIDConsts linearConsts(6, 0.0, 250, 3125);
     PIDConsts angularConsts(6, 0.0, 296.875, 10000000);
 
     // Async motion control

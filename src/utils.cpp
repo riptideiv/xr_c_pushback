@@ -153,6 +153,33 @@ namespace utils {
         }
     }
 
+    // Binary search for linear maxAccel (mirrors the UI behavior of other binary searches)
+    void runLateralBSearchMaxAccel(double kP, double kD, double l, double r, double target, int timeout) {
+        pid::linearConsts.kP = kP;
+        pid::linearConsts.kD = kD;
+        while (true) {
+            double m = (l + r) / 2;
+            pid::linearConsts.maxAccel = m;
+            std::cout << "min: " << l << ", max: " << r << ", mid(maxAccel): " << m << std::endl;
+            runFwdBwdTest(target, timeout);
+            while (true) {
+                pros::delay(20);
+                if (bot::master.get_digital(pros::E_CONTROLLER_DIGITAL_UP)) {
+                    l = m; // user indicates increase
+                    break;
+                }
+                if (bot::master.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) {
+                    r = m; // user indicates decrease
+                    break;
+                }
+                if (bot::master.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT)) {
+                    
+                    break;
+                }
+            }
+        }
+    }
+
     void runAngularBSearchkP(double kD, double l, double r, double target, int timeout) {
         pid::angularConsts.kD = kD;
         while (true) {

@@ -1,11 +1,14 @@
 #include "sensors.hpp"
+#include "pros/distance.hpp"
 
 namespace bot {
     pros::Imu imu1(3);
     pros::Imu imu2(9);
     pros::Rotation horizEnc(19), vertEnc(15);
     const double horizOffset = -2.11287, vertOffset = -1.85595; // horiz offset = rightward is +, vert offset = forward is +
-
+    pros::Distance distRight(10);
+    pros::Distance distLeft(2);
+    pros::Distance distBack(14);
     // Correction factor to map IMU-reported rotation to actual rotation.
     // Example: sensor reads 358 when actual is 360 -> correction = 360.0/358.0
     static const double imuRotationCorrection1 = 360.0 / 358.0;

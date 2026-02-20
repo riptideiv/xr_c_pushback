@@ -14,6 +14,8 @@ namespace utils {
     void runLateralPID_kDs(double kP, double begin, double end, double step, double target, int timeout);
     void runLateralBSearchkP(double kD, double l, double r, double target, int timeout);
     void runLateralBSearchkD(double kP, double l, double r, double target, int timeout);
+    // Binary search for linear (lateral) max acceleration (maxAccel) tuning
+    void runLateralBSearchMaxAccel(double kP, double kD, double l, double r, double target, int timeout);
     void runAngularBSearchkP(double kD, double l, double r, double target, int timeout);
     void runAngularBSearchkD(double kP, double l, double r, double target, int timeout);
     void findTrackingRadius();

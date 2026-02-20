@@ -32,11 +32,12 @@ namespace riptide {
     bool opControlActive = false;
     bool skillsMacroRan = false;
     void opcontrol() {
-        // utils::runLateralBSearchkP(0, 0, 10, 24, 2000);
-        // utils::runLateralBSearchkD(6, 0, 500, 48, 2000); // P=6, D=250
+        // utils::runLateralBSearchkP(0, 9.375, 9.375, 24, 2000);
+        // utils::runLateralBSearchkD(9.375, 500, 500, 24, 2000); // P=6, D=250
         // utils::runAngularBSearchkP(0, 0, 10, 90, 1000);
-        utils::runAngularBSearchkD(6, 100, 300, 45, 1000); // London found (6,150) the other day
+        // utils::runAngularBSearchkD(6, 451.562, 451.562, 45, 1000); // London found (6,150) the other day
         // utils::findTrackingRadius();
+        // utils::runLateralBSearchMaxAccel(100, 0,3125, 3125, 24, 2000);
         auton::initialize();
         while (1) {
             pros::delay(10);
